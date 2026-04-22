@@ -1,0 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&family=Crimson+Pro:ital,wght@0,200..900;1,200..900&display=swap');
+
+@theme {
+  --font-serif: "Crimson Pro", serif;
+  --font-slab: "Arvo", serif;
+}
+
+:root {
+  --font-serif: "Crimson Pro", serif;
+  --font-slab: "Arvo", serif;
+}
+
+@layer base {
+  html, body {
+    font-family: var(--font-serif);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-slab);
+    letter-spacing: -0.01em;
+    font-weight: 700;
+  }
+}

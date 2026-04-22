@@ -1,0 +1,268 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 16px;
+  --background: #e5d9c4; /* Antique Industrial Paper */
+  --foreground: #2e2e2e;
+  --card: #f4ebde;
+  --card-foreground: #2e2e2e;
+  --popover: #f4ebde;
+  --popover-foreground: #2e2e2e;
+  --primary: #a51c30; /* Revolutionary Crimson */
+  --primary-foreground: #ffffff;
+  --secondary: #d4af37; /* Stamped Brass */
+  --secondary-foreground: #2e2e2e;
+  --muted: #d5c8b2;
+  --muted-foreground: #5d4037;
+  --accent: #8b4513; /* Industrial Copper */
+  --accent-foreground: #ffffff;
+  --destructive: #7b1d1d;
+  --destructive-foreground: #ffffff;
+  --border: #5d4037; /* Sharp, authoritative borders */
+  --input: transparent;
+  --input-background: #f4ebde;
+  --switch-background: #5d4037;
+  --font-weight-medium: 700;
+  --font-weight-normal: 400;
+  --ring: #a51c30;
+  --chart-1: #a51c30;
+  --chart-2: #d4af37;
+  --chart-3: #2e2e2e;
+  --chart-4: #8b4513;
+  --chart-5: #5d4037;
+  --radius: 0; /* Sharp corners for industrial feel */
+  --sidebar: #e5d9c4;
+  --sidebar-foreground: #2e2e2e;
+  --sidebar-primary: #a51c30;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #d4af37;
+  --sidebar-accent-foreground: #2e2e2e;
+  --sidebar-border: #5d4037;
+  --sidebar-ring: #a51c30;
+  
+  /* Premium Industrial Tokens */
+  --glass-bg: rgba(244, 235, 222, 0.7);
+  --iron-gradient: linear-gradient(135deg, #5d4037 0%, #2e2e2e 100%);
+  --crimson-glow: 0 0 15px rgba(165, 28, 48, 0.4);
+}
+
+.dark {
+  --background: #121212;
+  --foreground: #e0e0e0;
+  --card: #1e1e1e;
+  --card-foreground: #e0e0e0;
+  --popover: #1e1e1e;
+  --popover-foreground: #e0e0e0;
+  --primary: #b22222;
+  --primary-foreground: #e0e0e0;
+  --secondary: #daa520;
+  --secondary-foreground: #121212;
+  --muted: #2a2a2a;
+  --muted-foreground: #a0a0a0;
+  --accent: #8b4513; /* Saddle Brown */
+  --accent-foreground: #e0e0e0;
+  --destructive: #8b0000;
+  --destructive-foreground: #e0e0e0;
+  --border: #333333;
+  --input: #1e1e1e;
+  --ring: #b22222;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --chart-1: #b22222;
+  --chart-2: #daa520;
+  --chart-3: #8b4513;
+  --chart-4: #2a2a2a;
+  --chart-5: #333333;
+  --sidebar: #121212;
+  --sidebar-foreground: #e0e0e0;
+  --sidebar-primary: #b22222;
+  --sidebar-primary-foreground: #e0e0e0;
+  --sidebar-accent: #8b4513;
+  --sidebar-accent-foreground: #e0e0e0;
+  --sidebar-border: #333333;
+  --sidebar-ring: #b22222;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /**
+  * Default typography styles for HTML elements (h1-h4, p, label, button, input).
+  * These are in @layer base, so Tailwind utility classes (like text-sm, text-lg) automatically override them.
+  */
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  h1 {
+    font-size: var(--text-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h2 {
+    font-size: var(--text-xl);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h3 {
+    font-size: var(--text-lg);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  h4 {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  label {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}
+
+@layer components {
+  .industrial-card {
+    background-color: var(--card);
+    border: 2px solid var(--border);
+    box-shadow: 4px 4px 0px 0px var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .industrial-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("https://www.transparenttextures.com/patterns/p6.png");
+    opacity: 0.1;
+    pointer-events: none;
+  }
+
+  .btn-primary {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    border: 1px solid var(--border);
+    box-shadow: 2px 2px 0px 0px var(--border);
+    transition: all 0.2s;
+    cursor: pointer;
+  }
+
+  .btn-primary:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0px 0px var(--border);
+    background-color: #7b1d1d;
+  }
+
+  .btn-primary:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0px 0px var(--border);
+  }
+
+  .paper-texture {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: url("https://www.transparenttextures.com/patterns/p6.png");
+    opacity: 0.08;
+    z-index: 50;
+  }
+
+  .revolutionary-border {
+    border: 4px double var(--primary);
+    padding: 2px;
+  }
+
+  .glass-industrial {
+    background: var(--glass-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(93, 64, 55, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  .text-glow {
+    text-shadow: var(--crimson-glow);
+  }
+
+  .industrial-grid {
+    background-image: 
+      linear-gradient(rgba(165, 28, 48, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(165, 28, 48, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0px); }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+}
