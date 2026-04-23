@@ -38,6 +38,8 @@ export type Phase =
   | "feedback"
   | "battle"
   | "management"
+  | "challenge"
+  | "cinema"
   | "ending";
 
 export interface Stats {
@@ -65,6 +67,7 @@ export interface Character {
   stats: Stats;
   gems: string[];
   history: string[];
+  achievements: string[]; // IDs của achievements đã unlock
 }
 
 interface StatEffect {
@@ -73,6 +76,32 @@ interface StatEffect {
   wealth?: number;
   social?: number;
   gem?: string;
+}
+
+interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  emoji: string;
+  condition: (char: Character, sceneId: SceneId) => boolean;
+  rarity: "common" | "rare" | "epic" | "legendary";
+}
+
+interface Challenge {
+  id: string;
+  title: string;
+  scenario: string;
+  question: string;
+  stakes: string;
+  hints?: Partial<Record<CharacterClass, string>>;
+  options: Array<{
+    text: string;
+    isCorrect: boolean;
+    feedback: string;
+    reward: StatEffect;
+  }>;
+  penalty: StatEffect;
+  emoji: string;
 }
 
 interface Choice {
@@ -100,6 +129,7 @@ interface Scene {
   narrative: string;
   npc?: NPC;
   choices: Choice[];
+  challengeId?: string; // Optional challenge to trigger before choices
 }
 
 interface BattleOption {
@@ -171,6 +201,192 @@ const CLASS_CONFIGS: Record<
     stats: { knowledge: 40, willpower: 30, wealth: 55, social: 35 },
     perk: "+Kỹ năng công nghệ · +Hiểu biết máy móc · Bonus khi tương tác với AI/Robot",
     color: "var(--accent)",
+  },
+};
+
+const ACHIEVEMENTS: Record<string, Achievement> = {
+  theorist: {
+    id: "theorist",
+    title: "Nhà Lý Luận",
+    description: "Đạt Knowledge ≥ 80",
+    emoji: "🧠",
+    condition: (char) => char.stats.knowledge >= 80,
+    rarity: "epic",
+  },
+  activist: {
+    id: "activist",
+    title: "Chiến Sĩ Lao Động",
+    description: "Đạt Social ≥ 70 và Willpower ≥ 60",
+    emoji: "✊",
+    condition: (char) => char.stats.social >= 70 && char.stats.willpower >= 60,
+    rarity: "epic",
+  },
+  engineer: {
+    id: "engineer",
+    title: "Kỹ Sư Tương Lai",
+    description: "Đạt Knowledge ≥ 60 và Wealth ≥ 55",
+    emoji: "🔬",
+    condition: (char) => char.stats.knowledge >= 60 && char.stats.wealth >= 55,
+    rarity: "epic",
+  },
+  visionary: {
+    id: "visionary",
+    title: "Nhà Kiến Tạo",
+    description: "Đạt Social ≥ 65 và Knowledge ≥ 50",
+    emoji: "🌱",
+    condition: (char) => char.stats.social >= 65 && char.stats.knowledge >= 50,
+    rarity: "epic",
+  },
+  balanced: {
+    id: "balanced",
+    title: "Người Cân Bằng",
+    description: "Tất cả stats ≥ 50",
+    emoji: "⚖️",
+    condition: (char) =>
+      char.stats.knowledge >= 50 &&
+      char.stats.willpower >= 50 &&
+      char.stats.wealth >= 50 &&
+      char.stats.social >= 50,
+    rarity: "rare",
+  },
+  trueMarxist: {
+    id: "trueMarxist",
+    title: "Cộng Sản Thực Thụ",
+    description: "Hoàn thành game với tất cả lựa chọn đúng từ góc nhìn Mác",
+    emoji: "🚩",
+    condition: (char) => char.gems.length >= 7,
+    rarity: "legendary",
+  },
+  speedrunner: {
+    id: "speedrunner",
+    title: "Chiến Binh Tốc Độ",
+    description: "Hoàn thành game trong dưới 5 lựa chọn",
+    emoji: "⚡",
+    condition: (char) => char.history.length <= 5,
+    rarity: "rare",
+  },
+  completionist: {
+    id: "completionist",
+    title: "Nhà Thu Thập",
+    description: "Lấy được 10 concepts gems",
+    emoji: "💎",
+    condition: (char) => char.gems.length >= 10,
+    rarity: "rare",
+  },
+  studentPath: {
+    id: "studentPath",
+    title: "Sinh Viên Ưu Tú",
+    description: "Đạo tạo lại chủ yếu bằng học vấn",
+    emoji: "🎓",
+    condition: (char) => char.characterClass === "student",
+    rarity: "common",
+  },
+  workerPath: {
+    id: "workerPath",
+    title: "Công Nhân Anh Hùng",
+    description: "Duy trì hành động như công nhân xuyên suốt",
+    emoji: "🏭",
+    condition: (char) => char.characterClass === "worker",
+    rarity: "common",
+  },
+  techPath: {
+    id: "techPath",
+    title: "Chinh Phục Công Nghệ",
+    description: "Phát triển con đường công nghệ",
+    emoji: "⚙️",
+    condition: (char) => char.characterClass === "technician",
+    rarity: "common",
+  },
+};
+
+// ═══════════════════ CHALLENGES DATA ═══════════════════
+
+const CHALLENGES: Record<string, Challenge> = {
+  value_vs_use: {
+    id: "value_vs_use",
+    title: "Biến Cố: Dây Chuyền Mới Khởi Động",
+    scenario:
+      "Khi robot đầu tiên ở tổ may được bật lên, vài quản lý lập tức tuyên bố rằng từ nay máy móc mới là thứ 'làm ra giá trị'. Một nhóm công nhân trẻ chững lại, bắt đầu tin rằng kinh nghiệm của họ sắp trở nên vô nghĩa. Bác Tư nhìn sang bạn, chờ bạn lên tiếng ngay tại chuyền.",
+    question:
+      "Bạn sẽ giải thích thế nào để giữ tinh thần tổ may và làm rõ bản chất của máy móc trong quá trình sản xuất?",
+    stakes:
+      "Nếu xử lý tốt, công nhân sẽ hiểu rằng lao động sống vẫn là trung tâm của giá trị mới. Nếu nói sai, cả tổ sẽ dễ chấp nhận logic 'máy móc thay người là lẽ tự nhiên'.",
+    emoji: "🤔",
+    hints: {
+      student:
+        "Gợi ý cho Sinh Viên: hãy bám vào phân biệt giữa giá trị sử dụng và giá trị trao đổi, rồi chỉ ra nguồn gốc giá trị mới.",
+      worker:
+        "Gợi ý cho Công Nhân: hãy nói từ trải nghiệm xưởng rằng robot chỉ hỗ trợ quy trình, còn người lao động vẫn tạo ra phần giá trị mới.",
+      technician:
+        "Gợi ý cho Kỹ Thuật Viên: hãy tách rõ năng suất kỹ thuật của robot khỏi câu hỏi 'ai tạo ra giá trị mới'.",
+    },
+    options: [
+      {
+        text: "Khẳng định robot tự tạo ra giá trị mới vì nó có giá thị trường cao và chạy nhanh hơn công nhân.",
+        isCorrect: false,
+        feedback:
+          "Sai hướng. Máy móc là tư bản bất biến. Nó không tự sinh ra giá trị mới, mà chỉ chuyển dần giá trị của chính nó vào sản phẩm qua khấu hao.",
+        reward: { knowledge: 5 },
+      },
+      {
+        text: "Giải thích rằng robot không tạo ra giá trị mới, nó chỉ chuyển giá trị của nó vào hàng hóa; phần giá trị mới vẫn do lao động sống tạo ra.",
+        isCorrect: true,
+        feedback:
+          "Chuẩn xác. Bạn chặn đứng sự ngộ nhận ngay tại xưởng: robot có thể tăng năng suất, nhưng chỉ lao động sống mới tạo ra giá trị mới và giá trị thặng dư.",
+        reward: { knowledge: 15, willpower: 5 },
+      },
+      {
+        text: "Nói rằng robot có tạo ra giá trị hay không chủ yếu tùy vào quốc gia sản xuất và thương hiệu của nó.",
+        isCorrect: false,
+        feedback:
+          "Chưa đúng. Vấn đề không nằm ở thương hiệu hay quốc gia sản xuất, mà ở bản chất kinh tế của máy móc trong quá trình lao động.",
+        reward: { knowledge: 3 },
+      },
+    ],
+    penalty: { knowledge: -10 },
+  },
+  exploitation: {
+    id: "exploitation",
+    title: "Biến Cố: Bảng Lương Sau Tự Động Hóa",
+    scenario:
+      "Sau khi robot vào xưởng, ban quản lý treo bảng hiệu suất mới và nói rằng lợi nhuận tăng là do 'quản trị hiện đại'. Chị Mai kéo bạn lại trước đám đông: nếu không giải thích rõ nguồn gốc lợi nhuận, rất nhiều người sẽ nghĩ bóc lột chỉ là cảm giác chứ không có cơ sở lý luận.",
+    question:
+      "Bạn sẽ chỉ ra chính xác lợi nhuận của ông chủ hình thành ở đâu trong tình huống này?",
+    stakes:
+      "Nếu trả lời chắc tay, công nhân hiểu bản chất giá trị thặng dư. Nếu trả lời mơ hồ, cuộc tranh luận sẽ trôi sang những khẩu hiệu cảm tính.",
+    emoji: "💼",
+    hints: {
+      student:
+        "Gợi ý cho Sinh Viên: hãy bám vào phân chia thời gian lao động tất yếu và thời gian lao động thặng dư.",
+      worker:
+        "Gợi ý cho Công Nhân: hãy nói từ trải nghiệm ca làm rằng công nhân tạo ra nhiều hơn phần tiền công họ nhận được.",
+      technician:
+        "Gợi ý cho Kỹ Thuật Viên: đừng nhầm tăng năng suất với việc máy móc tự tạo lợi nhuận; hãy truy về phần lao động không được trả công.",
+    },
+    options: [
+      {
+        text: "Cho rằng lợi nhuận chủ yếu đến từ việc ông chủ giỏi quản trị và bán hàng tốt hơn.",
+        isCorrect: false,
+        feedback:
+          "Sai trọng tâm. Quản trị hay lưu thông không phải nguồn gốc cuối cùng của lợi nhuận. Phần quyết định vẫn là lao động thặng dư mà công nhân không được trả công.",
+        reward: { knowledge: 3 },
+      },
+      {
+        text: "Chỉ ra rằng lợi nhuận nảy sinh từ 4 giờ lao động thặng dư, tức phần thời gian công nhân tạo ra giá trị nhưng không được trả tiền tương ứng.",
+        isCorrect: true,
+        feedback:
+          "Rất sắc. Bạn giúp cả tổ nhìn rõ công thức đang ẩn sau bảng lương: phần lao động thặng dư chính là nguồn gốc của lợi nhuận, không phải phép màu quản trị.",
+        reward: { knowledge: 20, social: 10, willpower: 10 },
+      },
+      {
+        text: "Nói rằng lợi nhuận chỉ đơn giản đến từ chênh lệch giữa giá chi phí và giá bán ngoài thị trường.",
+        isCorrect: false,
+        feedback:
+          "Mới chạm bề mặt. Chênh lệch giá chỉ là hình thức biểu hiện bên ngoài; nguồn gốc sâu hơn vẫn là giá trị thặng dư do lao động sống tạo ra.",
+        reward: { knowledge: 8 },
+      },
+    ],
+    penalty: { knowledge: -15, social: -5 },
   },
 };
 
@@ -402,52 +618,52 @@ const BATTLE: { enemy: NPC; rounds: BattleRound[] } = {
 const SCENES: Record<SceneId, Scene> = {
   prologue: {
     id: "prologue",
-    title: "Ngày Đầu Tiên",
+    title: "Lenh Chuyen Ca Thu",
     bgAccent: "var(--primary)",
-    setting: "Nhà máy may mặc Sáng Nam · Bình Dương · Tháng 3/2025",
+    setting: "Nha may Sang Nam · Binh Duong · 03/2025",
     narrative:
-      'Buổi sáng tháng Ba, ánh nắng sớm lọc qua ô kính nhà máy. Bạn vừa nhận được công việc tại Sáng Nam – một trong những nhà máy may mặc lớn nhất tỉnh Bình Dương. Tiếng máy may rầm rì, mùi vải mới, 300 công nhân đang bắt đầu ca sáng. Nhưng ở góc xa, bạn để ý thấy những chiếc hộp gỗ lớn mang nhãn hiệu "FANUC Industrial Robot" còn chưa được mở...',
+      'Ca sang dau tuan bat dau nhu moi ngay, cho den khi bang thong bao dien tu nhap nhay dong chu: "Du an Loom-X se duoc kich hoat sau 72 gio". Tu khoi van phong kinh doanh den to may so 3, ai cung doan rang day la dot tai cau truc lon nhat cua nha may trong 20 nam. Ban vua la nhan su moi, vua la nguoi duy nhat chua bi cuon vao tam trang "cu lam da roi tinh sau".',
     npc: {
-      name: "Bà Hoa",
+      name: "Ba Hoa",
       emoji: "👩‍💼",
-      role: "Trưởng Phòng Nhân Sự",
+      role: "Truong phong nhan su",
       dialogue:
-        "Chào mừng em đến Sáng Nam! Nhà máy chúng ta đang trong giai đoạn... chuyển đổi quan trọng. Em sẽ bắt đầu ở tổ may số 3. À, mấy hộp kia tuần sau sẽ lắp đặt. Hiện đại hóa thôi mà!",
+        "Toi chua the noi het. Chi biet rang sau 72 gio, day chuyen moi se vao. Neu muon ton tai o Sang Nam, moi nguoi phai tu chon cach dung trong cuoc thay doi nay.",
     },
     choices: [
       {
-        text: '🎓 "Theo nghiên cứu, tự động hóa ảnh hưởng 40% việc làm ngành dệt may. Công ty có kế hoạch đào tạo lại công nhân không?"',
+        text: "🎓 Ban xin danh sach vi tri se bi anh huong boi Loom-X, muon biet quan he giua nang suat moi va so phan lao dong cu.",
         feedback:
-          'Bà Hoa ngạc nhiên: "Em học kinh tế à? Ồ... công ty sẽ có chính sách phù hợp..." Rõ ràng bà không chuẩn bị cho câu hỏi chuyên môn này. Nhưng bạn ghi điểm với ban quản lý nhờ tư duy phân tích.',
+          "Ba Hoa khong tra loi thang, nhung su im lang cua ba noi len rat nhieu. Ban da buoc nha may phai lo dien: day khong chi la dau tu may moc, ma la sap xep lai ai duoc o lai va ai bi day ra ngoai.",
         effect: { knowledge: 10, social: 10 },
         next: "baotu",
-        conceptTag: "Phân Tích Dữ Liệu",
+        conceptTag: "Dieu tra tai cau truc",
         requirement: { stat: "knowledge", min: 50 },
         roleBonus: "student",
       },
       {
-        text: '👷 "Những robot đó sẽ ảnh hưởng đến việc làm của anh chị công nhân thế nào, bà?"',
+        text: "👷 Ban khong hoi vong vo, ma yeu cau noi ro truoc mat ca to may: robot vao thi cong nhan nao se mat ca, cong nhan nao bi ep tang toc.",
         feedback:
-          'Bà Hoa ngập ngừng: "Ồ... công ty sẽ có chính sách phù hợp..." Một công nhân đứng gần gật đầu với bạn – bạn đang hỏi điều mọi người muốn biết nhưng không dám hỏi.',
+          "May nguoi dung canh do quay sang nhin ban. Lan dau tien trong buoi sang, noi lo trong xuong duoc noi ra bang giong noi cua mot con nguoi, khong phai bang tin don hanh lang.",
         effect: { social: 12, willpower: 5 },
         next: "baotu",
-        conceptTag: "Tiếng Nói Công Nhân",
+        conceptTag: "Len tieng tai xuong",
         roleBonus: "worker",
       },
       {
-        text: '💻 "Những robot kia là dòng FANUC M-20iA đúng không? Em có thể xin tài liệu kỹ thuật để tìm hiểu không?"',
+        text: "💻 Ban xin quyen xem ban mo phong cua Loom-X, quyet dinh phai hieu he thong truoc khi he thong quyet dinh so phan cua minh.",
         feedback:
-          'Bà Hoa bất ngờ: "Ồ em biết về robot à? Hay đấy, tuần sau em ghé phòng IT nhé." Kỹ năng công nghệ của bạn mở ra cơ hội tiếp cận sớm.',
+          "Ba Hoa bat ngo vi ban biet cach dat cau hoi dung. Ban duoc hen gap phong ky thuat vao cuoi ca, va lan dau tien cam thay cong nghe co the la cua kinh de tu ve thay vi chi la nguon de doa.",
         effect: { knowledge: 8, wealth: 8 },
         next: "baotu",
-        conceptTag: "Kỹ Năng Công Nghệ",
+        conceptTag: "Tham nhap he thong",
         requirement: { stat: "wealth", min: 50 },
         roleBonus: "technician",
       },
       {
-        text: "Cảm ơn bà! Tôi sẽ cố gắng học hỏi và làm tốt công việc của mình.",
+        text: "Ban giu im lang, chon quan sat va di theo dong nguoi ve to may so 3.",
         feedback:
-          "Bà Hoa mỉm cười hài lòng. Bạn được dẫn đến tổ may số 3, nơi Bác Tư đang ngồi chờ với chiếc máy may cũ nhất tổ.",
+          "Ban chua co cau tra loi nao, nhung khong khi trong xuong da bao cho ban biet: 72 gio toi se khong con la chuyen lam viec binh thuong nua.",
         effect: { willpower: 5 },
         next: "baotu",
       },
@@ -456,43 +672,43 @@ const SCENES: Record<SceneId, Scene> = {
 
   baotu: {
     id: "baotu",
-    title: "Triết Học Dưới Ánh Đèn Xưởng",
+    title: "Muoi Lam Phut Cua Bac Tu",
     bgAccent: "var(--secondary)",
-    setting: "Tổ may số 3 · Góc cuối xưởng",
+    setting: "To may so 3 · 10:15 sang",
     narrative:
-      "Bác Tư – 55 tuổi, 20 năm làm thợ may – ngồi bên chiếc máy cũ nhất tổ. Bàn tay ông thoăn thoắt, mỗi mũi chỉ chính xác như một bản nhạc đã thuộc lòng. Ông nhìn bạn và nói không ngừng tay...",
+      "Bac Tu khong nhin vao man hinh thong bao, ong nhin vao chiec ao dang may do. Ong noi rang nha may nao cung muon chay nhanh hon, nhung khong ai tu hoi cai gi tao nen gia tri cua chiec ao truoc khi robot xuat hien. Xung quanh, may may van go nhip deu, nhu the ca xuong dang cho mot ai do noi thanh loi dieu ai cung cam duoc ma chua ai goi dung ten.",
     npc: {
-      name: "Bác Tư",
+      name: "Bac Tu",
       emoji: "👴",
-      role: "Thợ may · 20 năm kinh nghiệm",
+      role: "Tho may · 20 nam kinh nghiem",
       dialogue:
-        "Cháu mới vào à? Ngồi đây Bác chỉ cho. Cháu thấy cái áo này không – 15 phút tôi may xong. Cái 15 phút đó... không phải 15 phút của riêng Bác Tư già này đâu. Đó là thời gian LAO ĐỘNG XÃ HỘI TRUNG BÌNH – thời gian cần thiết trong xã hội để may một chiếc áo. Cái đó tạo nên GIÁ TRỊ của nó.",
+        "Nguoi ta nhin 15 phut cua Bac nhu 15 phut rieng cua mot ong gia. Khong phai. Day la thoi gian lao dong xa hoi ket tinh trong tung duong chi. Neu mai day chuyen nhanh gap doi, cau hoi khong chi la ai nhanh hon, ma la ai dang tao ra gia tri moi.",
     },
     choices: [
       {
-        text: '🎓 "Bác đang nói về Lao động Trừu tượng theo Mác – hao phí sức người nói chung tạo ra giá trị – khác with Lao động Cụ thể tạo ra chiếc áo này?"',
+        text: "🎓 Ban dung bua nghi ngan de bien to may thanh mot 'lop hoc hien truong', giai thich cho moi nguoi hai mat cua lao dong ngay tren chiec ao Bac Tu dang may.",
         feedback:
-          'Mắt Bác Tư sáng lên: "Ồ! Cháu học Triết học rồi à? Chính xác 100%! Lao động CỤ THỂ tạo ra CHIẾC ÁO – giá trị sử dụng. Lao động TRỪU TƯỢNG – hao phí sức người nói chung – tạo ra GIÁ TRỊ trao đổi. Cháu nắm vững lý thuyết đấy!"',
+          "Nguoi trong to bat dau dung lai nghe thay vi coi day la loi than van cua nguoi gia. Ban khong doc bai, ban bien ly luan thanh thu ma ai cung nhin thay tren ban may.",
         effect: { knowledge: 25, social: 8, gem: "Hai Mặt Lao Động" },
         next: "robots",
-        conceptTag: "Lao Động Cụ Thể & Trừu Tượng",
+        conceptTag: "Lao dong hai mat",
         requirement: { stat: "knowledge", min: 40 },
         roleBonus: "student",
       },
       {
-        text: '💻 "Bác ơi, nếu máy làm trong 5 phút thì thời gian xã hội cần thiết giảm → giá trị áo giảm → lương công nhân cũng chịu áp lực giảm đúng không?"',
+        text: "💻 Ban mo bang mo phong nang suat, chi cho Bac Tu va ca to thay rang toc do may tang co the day gia tri ao xuong va tien cong vao the bi dong bang.",
         feedback:
-          'Bác Tư gật đầu: "Cháu hiểu cả logic kinh tế! Đúng vậy – năng suất tăng → giá trị giảm → ông chủ muốn giảm lương. Đây là vòng luẩn quẩn của tư bản chủ nghĩa mà cháu đang thấy."',
+          "Bac Tu nhin man hinh rat lau roi chi noi mot cau: 'Vay la may nhanh hon chua chac doi minh kham kha hon.' Tu khoanh khac do, cong nghe khong con la phep mau, ma tro thanh bai toan quyen luc.",
         effect: { knowledge: 18, wealth: 8, gem: "Năng Suất & Giá Trị" },
         next: "robots",
-        conceptTag: "Phân Tích Kinh Tế",
+        conceptTag: "Do thi nang suat",
         requirement: { stat: "wealth", min: 45 },
         roleBonus: "technician",
       },
       {
-        text: '👷 "Bác ơi... Bác thấy mấy cái robot kia chưa? 20 năm kinh nghiệm của bác... họ sẽ thay thế mất thôi."',
+        text: "👷 Ban noi thang voi ca to: neu minh khong hieu minh dang tao ra gia tri gi, ngay Loom-X bat len thi minh se bi thay the ma khong kip mo mieng.",
         feedback:
-          'Bác Tư dừng tay, đặt tay lên vai bạn: "Cháu nói đúng nỗi lo của Bác. Nhưng Bác biết: robot là TƯ BẢN CHẾT – chỉ chuyển giá trị. Chúng ta là TƯ BẢN SỐNG – TẠO RA giá trị mới. Bọn cháu phải hiểu để đấu tranh cho quyền của mình!"',
+          "Khong ai cuoi cau noi do. Bac Tu tat may trong vai giay, va su im lang ay co suc nang hon moi bai phat bieu. To may lan dau tien nhin nõi so cua minh nhu mot van de chung.",
         effect: {
           willpower: 20,
           social: 15,
@@ -500,14 +716,14 @@ const SCENES: Record<SceneId, Scene> = {
           gem: "Lao Động Sống & Chết",
         },
         next: "robots",
-        conceptTag: "Đoàn Kết Công Nhân",
+        conceptTag: "Tinh than to may",
         requirement: { stat: "willpower", min: 35 },
         roleBonus: "worker",
       },
       {
-        text: "Nghe có vẻ phức tạp quá... Tôi chỉ cần làm tốt công việc được giao thôi.",
+        text: "Ban chon nghe va ghi nho, tam thoi chua dung vao cuoc tranh luan dang am len trong to.",
         feedback:
-          'Bác Tư thở dài: "Ừ... cũng được. Nhưng cháu nhớ: không hiểu thì dễ bị lợi dụng lắm."',
+          'Bac Tu khong ep ban noi gi. Ong chi bao: "Dung de nguoi ta viet nghia cua cong viec thay cho minh." Cau noi ay bam theo ban ca ngay.',
         effect: { wealth: 5 },
         next: "robots",
       },
@@ -516,43 +732,43 @@ const SCENES: Record<SceneId, Scene> = {
 
   robots: {
     id: "robots",
-    title: "Ngày Robot Đến",
+    title: "72 Gio Sau",
     bgAccent: "var(--destructive)",
-    setting: "Sân nhà máy · Thứ Hai đầu tháng Tư",
+    setting: "San nha may · 3 ngay sau",
     narrative:
-      "Buổi sáng thứ Hai đầu tháng Tư. Một đoàn 5 xe tải đỗ xịch trước cổng nhà máy. Công nhân đứng xem im lặng khi 20 cánh tay robot công nghiệp được cẩu xuống. Chị Mai – trưởng công đoàn 35 tuổi, giọng miền Trung rõ ràng – đứng giữa đám đông...",
+      "Loom-X duoc ha xuong giua san nhu mot nghi le. Ban giam doc dung tren bac tam cap goi day la 'buoc nhay nang suat'. Cong nhan dung thanh tung cum, nguoi chup anh, nguoi im lang, nguoi da tinh duong rut. Chị Mai khong nhin robot, chi nhin bieu cam cua nhung nguoi dang can mot cau tra loi de quyet dinh co nen tiep tuc o lai hay khong.",
     npc: {
-      name: "Chị Mai",
+      name: "Chi Mai",
       emoji: "👩‍🦱",
-      role: "Trưởng Công Đoàn",
+      role: "Truong cong doan",
       dialogue:
-        "Các bạn ơi! Đây là lúc chúng ta cần HIỂU rõ để HÀNH ĐỘNG đúng! Những robot kia là TƯ BẢN BẤT BIẾN: không tạo giá trị mới, chỉ chuyển dần giá trị bản thân vào sản phẩm qua khấu hao. Còn SỨC LAO ĐỘNG của chúng ta – đó là TƯ BẢN KHẢ BIẾN – thứ DUY NHẤT tạo ra giá trị mới và giá trị thặng dư cho ông chủ!",
+        "May moc co the moi, nhung cau hoi cu van con do: ai huong thanh qua, ai tra gia, ai bi day thanh du ra ben le? Neu hom nay minh noi sai, ca nha may se tin rang tu dong hoa la dinh menh.",
     },
     choices: [
       {
-        text: '🎓 "Đây chính là NGHỊCH LÝ TỰ ĐỘNG HÓA Mác dự báo! Tư bản cá nhân lợi nhưng toàn hệ thống mất nguồn giá trị thặng dư. Xu hướng tỷ suất lợi nhuận giảm dần (m\'/C) là tất yếu!"',
+        text: "🎓 Ban dung giua san va ve ra nghich ly cua Chuong 6: tung doanh nghiep thay lao dong song de tranh loi, nhung ca he thong lai tu cat vao nguon tao gia tri cua no.",
         feedback:
-          'Chị Mai hào hứng vỗ vai bạn: "Chính xác! Cháu nắm vững lý thuyết! Đây là mâu thuẫn nội tại của CNTB – không ai lập kế hoạch chung, mỗi ông chủ chỉ lo lợi nhuận riêng → khủng hoảng tất yếu!" Bạn được mời làm cố vấn lý thuyết cho công đoàn.',
+          "Nguoi nghe khong con chi so robot va ban tan gia may nua. Ho bat dau hoi mot cau khac: neu loi nhuan duoc bao bang viec cat bo lao dong song, den luc nao chinh he thong se khat gia tri moi?",
         effect: { knowledge: 30, social: 25, gem: "Nghịch Lý Tự Động Hóa" },
         next: "overtime",
-        conceptTag: "Nghịch Lý Tự Động Hóa",
+        conceptTag: "Nghich ly he thong",
         requirement: { stat: "knowledge", min: 55 },
         roleBonus: "student",
       },
       {
-        text: '💻 "Tôi muốn học vận hành robot này. Nếu hiểu công nghệ, mình có thể trở thành kỹ sư bảo trì – vị trí mới with lương cao hơn."',
+        text: "💻 Ban tiep can khu ky thuat, noi ro minh muon nam quyen van hanh Loom-X truoc khi day chuyen moi bi khoa kin boi mot nhom nho.",
         feedback:
-          'Chị Mai gật đầu: "Thực đấy. Thích nghi thông minh – nhưng nhớ dùng kỹ năng để giúp anh em công nhân khác nhé." Bạn được ưu tiên đào tạo kỹ năng số, mở ra cơ hội thăng tiến.',
+          "Ky su ben cung cap ngoai nhin ban bang anh mat de phong, nhung phai thua nhan ban hieu cach dat van de. Ban khong xin duoc an phan an toan, ban dang tranh quyen buoc vao noi cong nghe duoc dung de quyet dinh so phan nguoi khac.",
         effect: { wealth: 25, knowledge: 12, social: 5 },
         next: "overtime",
-        conceptTag: "Nâng Cấp Kỹ Năng",
+        conceptTag: "Gianh quyen hieu may",
         requirement: { stat: "wealth", min: 50 },
         roleBonus: "technician",
       },
       {
-        text: '👷 "Chị ơi! Chúng ta phải đoàn kết lại, yêu cầu công ty cam kết KHÔNG SA THẢI và có quỹ đào tạo lại! Đây là quyền chính đáng của người lao động!"',
+        text: "👷 Ban cung Chi Mai phat dong ban ky ten ngay tai san, doi doanh nghiep cam ket dao tao lai va khong sa thai vo dieu kien sau khi Loom-X vao chay.",
         feedback:
-          'Chị Mai nắm tay bạn: "Đúng! Tinh thần đấu tranh đây rồi! Nhưng cần chiến lược – không phải chống robot, mà đòi CHIA SẺ THÀNH QUẢ từ robot!" Bạn được bầu làm đại diện tổ trong cuộc đàm phán sắp tới.',
+          "Ban ky ten truyen tay nhanh hon ca thong bao noi bo. Den luc giam doc nhan ra, van de khong con nam o may moc nua, ma da tro thanh cau hoi cong khai ve viec ai phai ganh hau qua cua tu dong hoa.",
         effect: {
           willpower: 30,
           social: 20,
@@ -560,14 +776,14 @@ const SCENES: Record<SceneId, Scene> = {
           gem: "Đoàn Kết Công Nhân",
         },
         next: "overtime",
-        conceptTag: "Hành Động Tập Thể",
+        conceptTag: "Ky ten tap the",
         requirement: { stat: "willpower", min: 50 },
         roleBonus: "worker",
       },
       {
-        text: "Tình hình khó quá... Có lẽ nên tìm việc khác an toàn hơn.",
+        text: "Ban quyet dinh lui lai, theo doi xem san nha may se nghi ve Loom-X theo huong nao truoc khi chon phe.",
         feedback:
-          'Chị Mai thở dài: "Chạy được đâu cháu... AI đang lan khắp mọi ngành. Ở đây ít nhất còn có tập thể để dựa vào."',
+          "Lui lai giup ban thay ro hon mot dieu: su im lang trong nha may khong trung lap, no dang nghien ve phia nao co can dam goi ten ban chat cua cuoc doi doi nay.",
         effect: { willpower: -5, social: 5 },
         next: "overtime",
       },
@@ -576,45 +792,45 @@ const SCENES: Record<SceneId, Scene> = {
 
   overtime: {
     id: "overtime",
-    title: "Cơn Lốc Cường Độ",
+    title: "Bang Hieu Suat Do",
     bgAccent: "var(--destructive)",
-    setting: "Xưởng may Sáng Nam · 8 giờ tối",
+    setting: "Ca dem thu nghiem · 20:00",
     narrative:
-      'Đã 8 giờ tối, nhưng xưởng vẫn sáng trưng đèn. Hệ thống AI mới cài đặt không chỉ điều khiển robot mà còn theo dõi từng thao tác của con người qua camera cảm biến. "Nhanh lên 10% nữa!" – tiếng loa vang lên. Bác Tư mồ hôi nhễ nhại, đôi tay đã bắt đầu run vì mệt mỏi...',
+      'Ngay dau Loom-X chay thu, den ca dem bang nang suat moi da duoc treo khap xuong. Camera AI do tung nhat tay, tung lan dung lai, tung giay trao doi. Tieng loa lien tuc goi: "Bam sat nhip may moi". Bac Tu run tay. Mot chi trong to bat dau khoc vi khong theo kip dinh muc vua duoc cap nhat cach do 10 phut.',
     npc: {
-      name: "Giám sát viên",
+      name: "Giam sat vien",
       emoji: "🧐",
-      role: "Quản lý xưởng",
+      role: "Quan ly ca dem",
       dialogue:
-        "Các anh chị cố lên! Robot không biết mệt, chúng ta cũng phải đuổi kịp chúng. Đây là cách duy nhất để đơn hàng không bị hủy!",
+        "Muon giu don hang thi phai theo kip he thong. Day khong phai ep buoc, day la tieu chuan moi. Khong theo kip thi tu minh roi khoi day chuyen.",
     },
     choices: [
       {
-        text: '🎓 "Bác Tư ơi, đây là bóc lột GIÁ TRỊ THẶNG DƯ TUYỆT ĐỐI bằng cách tăng cường độ và kéo dài giờ làm. Chúng ta cần yêu cầu tăng lương tương xứng with hao phí sức lao động!"',
+        text: "🎓 Ban phan tich ngay tai bang chi tieu: day la cach hut gia tri thang du tuyet doi bang viec keo dai va nen chat cuong do lao dong.",
         feedback:
-          'Bạn giải thích lý luận giúp mọi người nhận ra mình đang bị vắt kiệt. Bác Tư gật đầu: "Đúng, mồ hôi chúng ta tạo ra tiền cho họ, không thể để họ coi mình như máy móc!"',
+          "Khi ly luan duoc goi dung ten, su uat uc trong xuong thoi khong con mo ho. Moi nguoi bat dau thay ro rang day khong phai van de 'yeu nghe' hay 'co gang them chut', ma la mot co che boc lot dang duoc hop thuc hoa bang du lieu.",
         effect: { knowledge: 20, willpower: 15, gem: "Thặng Dư Tuyệt Đối" },
         next: "reserve_army",
-        conceptTag: "Giá Trị Thặng Dư Tuyệt Đối",
+        conceptTag: "Bang ten boc lot",
         roleBonus: "student",
       },
       {
-        text: '👷 "Dừng máy lại! Chúng ta cần nghỉ ngơi. Cường độ thế này là vi phạm luật lao động và bản chất nhân văn mà Mác đã bảo vệ!"',
+        text: "👷 Ban ra hieu cho ca to dong loat ha toc do va chi lam dung quy trinh an toan, bien ca dem thanh mot cuoc can suc co to chuc.",
         feedback:
-          "Bạn dẫn đầu nhóm công nhân kiến nghị nghỉ giải lao. Sự đoàn kết khiến giám sát viên phải nhượng bộ. Uy tín của bạn tăng cao.",
+          "Quan ly ca dem co the de doa tung nguoi, nhung khong the de doa ca mot to dang dong nhip voi nhau. Trong lan dau tien, Loom-X phai chay theo nguoi thay vi nguoi chay theo Loom-X.",
         effect: { social: 20, willpower: 20, gem: "Đấu Tranh Giai Cấp" },
         next: "reserve_army",
-        conceptTag: "Đấu Tranh Tập Thể",
+        conceptTag: "Cham lai de song",
         requirement: { stat: "willpower", min: 45 },
         roleBonus: "worker",
       },
       {
-        text: '💻 "Tôi sẽ điều chỉnh lại thuật toán AI để tối ưu hóa quy trình thay vì ép người làm nhanh hơn. AI phải phục vụ con người, không phải nô dịch!"',
+        text: "💻 Ban dot nhap vao cau hinh phan luong, chuyen Loom-X sang uu tien can bang tai trong thay vi don suc ep len nhom nguoi yeu nhat.",
         feedback:
-          "Kỹ năng của bạn giúp giảm tải cho anh em mà vẫn đảm bảo sản lượng. Giám đốc Toàn rất ấn tượng with giải pháp thông minh này.",
+          "He thong khong bao gio trung lap. No phan bo ap luc theo cach duoc lap trinh. Khi ban doi tham so, ca to thang duoc mot khoang tho. Ban vua chung minh cong nghe co the bi giat lai tu tay nhung ai dung no de ep nguoi.",
         effect: { knowledge: 15, wealth: 20, gem: "AI Nhân Văn" },
         next: "reserve_army",
-        conceptTag: "Công Nghệ Vì Con Người",
+        conceptTag: "Giat lai tham so",
         requirement: { stat: "wealth", min: 40 },
         roleBonus: "technician",
       },
@@ -623,45 +839,45 @@ const SCENES: Record<SceneId, Scene> = {
 
   reserve_army: {
     id: "reserve_army",
-    title: "Đội Quân Dự Bị",
+    title: "Danh Sach Cat Giam",
     bgAccent: "var(--muted)",
-    setting: "Cổng nhà máy · Chiều mưa",
+    setting: "Cong nha may · chieu mua",
     narrative:
-      "Dưới cơn mưa phùn, một thông báo mới được dán lên: 30 công nhân tổ may cũ sẽ phải tạm nghỉ việc do dây chuyền robot đã vận hành ổn định. Những khuôn mặt thẫn thờ, những túi đồ cá nhân vội vã. Bạn thấy Anh Hùng – một thợ giỏi – đang đứng nhìn xa xăm...",
+      "Ba ngay sau ca thu nghiem, mot file excel in ra dan day tren bang thong bao. 30 ten bi dua vao nhom 'tam dung vi tri'. Khong ai noi tu sa thai, nhung ai cung hieu. Anh Hung dung trong mua, tay giu tui do nghe, mat khong nhin vao ai. Loom-X van chay deu phia sau, rat on dinh, rat dep, rat lanh.",
     npc: {
-      name: "Anh Hùng",
+      name: "Anh Hung",
       emoji: "🧑‍🔧",
-      role: "Công nhân bị sa thải",
+      role: "Tho cat bi cat vi tri",
       dialogue:
-        "Tôi làm ở đây 10 năm rồi... Bây giờ robot thay thế, tôi biết đi đâu? Có phải chúng ta đã trở thành những món đồ thừa thãi?",
+        "Toi lam o day 10 nam. Bay gio ho bao he thong moi khong con can nhieu nguoi nhu cu. Neu toi thanh nguoi du thua, vay 10 nam cua toi tinh la gi?",
     },
     choices: [
       {
-        text: '🎓 "Anh không phải đồ thừa! Theo Mác, đây là ĐỘI QUÂN DỰ BỊ CÔNG NGHIỆP tất yếu của tích lũy tư bản. Hệ thống tạo ra người thất nghiệp để giữ lương ở mức thấp!"',
+        text: "🎓 Ban noi ro voi Anh Hung: day chinh la doi quan du bi cong nghiep ma Mac mo ta, duoc tao ra de lam suc ep xuong tien cong va giu nguoi dang o lai trong noi so.",
         feedback:
-          'Anh Hùng bắt tay bạn: "Cảm ơn em đã giải thích. Hóa ra không phải lỗi của tôi, mà là quy luật của hệ thống này."',
+          "Anh Hung lang im rat lau, roi lan dau tien hoi tiep thay vi buong xuoi. Khi bi kich duoc dat dung ten, no khong con giam gia tri con nguoi thanh loi tu trach nua.",
         effect: { knowledge: 25, social: 10, gem: "Đội Quân Dự Bị" },
         next: "crossroads",
-        conceptTag: "Đội Quân Dự Bị Công Nghiệp",
+        conceptTag: "Goi ten co che",
         roleBonus: "student",
       },
       {
-        text: '👷 "Chúng ta không thể để anh em ra đi tay trắng! Hợp tác xã số là giải pháp – chúng ta sẽ tự làm chủ những con robot này!"',
+        text: "👷 Ban khong de moi nguoi tan ra. Ban keu nhung nguoi bi cat vi tri o lai va ban y tuong lap xuong chung cua chinh ho.",
         feedback:
-          "Ý tưởng của bạn thắp lên hy vọng. Một nhóm công nhân bắt đầu thảo luận về việc thành lập mô hình kinh tế mới.",
+          "Y tuong nghe dien ro, nhung trong giay phut khung hoang no la thu dau tien khong den tu long thuong hai. Ban trao lai cho ho mot kha nang: khong chi di xin cho minh duoc dung lai, ma co the tu to chuc lai cong viec.",
         effect: { willpower: 25, social: 25, gem: "Hợp Tác Xã Số" },
         next: "crossroads",
-        conceptTag: "Hợp Tác Xã Số",
+        conceptTag: "Tu to chuc lai lao dong",
         requirement: { stat: "social", min: 40 },
         roleBonus: "worker",
       },
       {
-        text: '💻 "Tôi đã soạn sẵn một lộ trình học nghề mới về bảo trì robot cho các anh. Tôi sẽ dùng tiền lương của mình để hỗ trợ tài liệu ban đầu."',
+        text: "💻 Ban ngoi ngay xuong them cot, mo laptop va tao mot lo trinh hoc cap toc de bien nhom bi cat giam thanh nhom van hanh va bao tri moi.",
         feedback:
-          "Sự hào hiệp và kỹ năng của bạn giúp anh em có hướng đi mới. Bạn đang biến lao động giản đơn thành lao động phức tạp.",
+          "Khong phai ai cung lap tuc tin, nhung ai cung dung lai nhin. Trong man mua, man hinh laptop cua ban la thu duy nhat phat ra anh sang khac voi bang thong bao cat giam: anh sang cua huong di.",
         effect: { wealth: -10, social: 30, knowledge: 15 },
         next: "crossroads",
-        conceptTag: "Đào Tạo Lại",
+        conceptTag: "Chuyen lao dong",
         roleBonus: "technician",
       },
     ],
@@ -669,37 +885,37 @@ const SCENES: Record<SceneId, Scene> = {
 
   crossroads: {
     id: "crossroads",
-    title: "Ngã Rẽ Lịch Sử",
+    title: "Dem Mat Dien",
     bgAccent: "var(--secondary)",
-    setting: "Quán cà phê vỉa hè · Chiều tối",
+    setting: "Quan ca phe truoc cong khu cong nghiep · 23:40",
     narrative:
-      "Sau cuộc tranh luận, bạn ngồi một mình với ly cà phê đen nguội dần. Ngoài cửa sổ, những công nhân tan ca đi qua – mỗi người một nét mặt khác nhau. Điện thoại reo. GS. Hùng – người thầy Triết học chính trị từ thời đại học – gọi đúng lúc này...",
+      "Dem do, ca khu mat dien trong 15 phut vi qua tai. Loom-X tat may, nha may toi den, va lan dau tien trong tuan ca he thong than thanh kia dung im hoan toan. Ban ngoi doi dien GS. Hung, nguoi vua tu Ha Noi vao de gap ban sau khi nghe ve cuoc bien dong o Sang Nam. Ong noi dem mat dien la luc de nhin thay mot dieu don gian: may moc khong tu viet ra tuong lai, con nguoi moi lam viec do.",
     npc: {
-      name: "GS. Hùng",
+      name: "GS. Hung",
       emoji: "👨‍🏫",
-      role: "Giáo sư Kinh tế Chính trị",
+      role: "Giang vien kinh te chinh tri",
       dialogue:
-        "Thầy nghe nói em đang ở Sáng Nam. Đây là ngã rẽ lịch sử không chỉ của em mà của cả thế hệ. Thầy thấy em có ba con đường. Mỗi con đường đều đúng theo cách riêng – câu hỏi là em muốn đóng góp gì cho quá trình biến đổi lịch sử này?",
+        "Em da thay tan mat tuong quan giua lao dong song, may moc va quyen luc. Bay gio em chon cach can thiep vao lich su nay: to chuc lai quan he san xuat, nang cap lao dong, hay dung mo hinh so huu moi de dao nghich cuoc choi?",
     },
     choices: [
       {
-        text: "🤝 Trở thành tiếng nói của người lao động – tổ chức phong trào, đấu tranh cho quyền lợi trong kỷ nguyên AI",
+        text: "🤝 Ban quyet dinh di theo con duong to chuc va dam phan, bien noi so Loom-X thanh suc ep chinh tri cua nguoi lao dong.",
         feedback:
-          'GS. Hùng: "Con đường gian khó nhưng có ý nghĩa lịch sử nhất. Mác dạy: thay đổi quan hệ sản xuất không thể không có đấu tranh có tổ chức."',
+          "GS. Hung gap so. Ong khong khen, chi noi: con duong nay can tri nho, ky luat va mot tap the khong tan ra khi bi de doa.",
         effect: { willpower: 10, social: 10 },
         next: "path_a1",
       },
       {
-        text: "💻 Nâng cấp bản thân thành lao động phức tạp – học AI, kỹ năng số, trở thành không thể thay thế",
+        text: "💻 Ban quyet dinh lao vao hoc sau he thong, vi neu khong nam duoc cong nghe thi mai mai chi theo sau no.",
         feedback:
-          'GS. Hùng: "Con đường thực tế và cá nhân. Nhớ rằng lao động phức tạp tạo nhiều giá trị hơn – nhưng đừng quên trách nhiệm với cộng đồng."',
+          "GS. Hung nhac ban mot cau cua Mac ve lao dong phuc tap. Ban nhan ra hoc khong con la chuyen thoat than, ma la mot mat tran moi cua quyen luc lao dong.",
         effect: { knowledge: 10, wealth: 10 },
         next: "path_b1",
       },
       {
-        text: "🌱 Kiến tạo mô hình hợp tác xã số – công nhân đồng sở hữu AI và robot, chia sẻ thành quả",
+        text: "🌱 Ban quyet dinh thu mot thu nguy hiem hon: lap mo hinh cong nhan dong so huu may moc thay vi xin duoc doi xu nhe tay hon.",
         feedback:
-          'GS. Hùng hào hứng: "Con đường sáng tạo nhất! Giải quyết mâu thuẫn cơ bản mà Mác chỉ ra – công nhân kiểm soát tư liệu sản xuất!"',
+          "GS. Hung ngoi im rat lau roi moi cuoi. Ong bao day la lua chon kho nhat, vi no khong sua be mat cua he thong ma dung cham vao cau truc so huu.",
         effect: { knowledge: 5, social: 15, willpower: 5 },
         next: "path_c1",
       },
@@ -708,23 +924,23 @@ const SCENES: Record<SceneId, Scene> = {
 
   path_a1: {
     id: "path_a1",
-    title: "Con Đường Đấu Tranh",
+    title: "Mat Tran Thuong Luong",
     bgAccent: "var(--primary)",
-    setting: "Liên đoàn Lao Động Số Việt Nam · 2026",
+    setting: "Van phong lien doan lao dong so · 2026",
     narrative:
-      "Bạn gia nhập Liên đoàn Lao Động Số Việt Nam – tổ chức mới thành lập năm 2026 với 10,000 thành viên. Hàng ngày: gặp gỡ công nhân, giải thích quyền lợi, soạn thảo kiến nghị, huấn luyện kỹ năng đàm phán. Một buổi tối, bạn và Chị Mai ngồi soạn điều khoản quan trọng nhất...",
+      "Ban tro thanh mot trong nhung nguoi lap ho so cho cac vu tai cau truc tu dong hoa. Ngay nao ban cung gap cong nhan mat viec, nhom ky su bi bo sung trach nhiem ma khong tang luong, va doanh nghiep noi ve nang suat nhu mot bo than chu khong phai lua chon. Ho so cua Sang Nam tro thanh vu dau tien duoc dua len cap quoc gia.",
     npc: {
-      name: "Chị Mai",
+      name: "Chi Mai",
       emoji: "👩‍🦱",
-      role: "Đồng Nghiệp · Liên đoàn LĐ Số",
+      role: "Dong nghiep to chuc",
       dialogue:
-        'Điều khoản quan trọng nhất: "Doanh nghiệp tự động hóa trên 30% phải đóng 15% lợi nhuận tăng thêm vào Quỹ Chuyển Đổi Lao Động." Bạn nghĩ sao?',
+        'Neu chi xin "giu viec", minh se thua. Dieu khoan phai danh thang vao noi phat sinh loi ich tu Loom-X: doanh nghiep phai trich mot phan loi nhuan tang them cho quy chuyen doi lao dong.',
     },
     choices: [
       {
-        text: "Đồng ý và thêm: công nhân bị thay thế có quyền ưu tiên đào tạo lại miễn phí 24 tháng, được hỗ trợ sinh hoạt phí trong thời gian chuyển đổi.",
+        text: "Ban bo sung co che dao tao lai co luong 24 thang, bien quy chuyen doi thanh quyen chinh tri chu khong phai long thuong hai.",
         feedback:
-          'Chị Mai: "Hoàn hảo! Đây chính là áp dụng nguyên tắc Mác vào thực tiễn – phân phối lại thành quả tự động hóa cho người lao động bị thay thế."',
+          "Ho so khong con la ban kien nghi xin xot, ma thanh mot thiet ke phan phoi lai thanh qua tu dong hoa. Day la lan dau nhiieu nguoi thay ly luan Chuong 6 co the di thang vao chinh sach.",
         effect: {
           knowledge: 10,
           social: 20,
@@ -734,9 +950,9 @@ const SCENES: Record<SceneId, Scene> = {
         next: "path_a2",
       },
       {
-        text: "Tập trung vào điều khoản cấm sa thải hàng loạt không có kế hoạch chuyển đổi trước ít nhất 6 tháng.",
+        text: "Ban chot vao dieu khoan doanh nghiep phai thong bao som va cong khai tac dong lao dong truoc moi dot tu dong hoa lon.",
         feedback:
-          'Chị Mai gật đầu: "Bảo vệ trước mắt đúng hướng! Kết hợp cả hai điều khoản sẽ toàn diện hơn."',
+          "Khong hoanh trang bang quy chuyen doi, nhung dieu khoan nay dot vo vu khi manh nhat cua doanh nghiep: su bat ngo. Nguoi lao dong co thoi gian de to chuc lai minh.",
         effect: { willpower: 15, social: 15 },
         next: "path_a2",
       },
@@ -745,22 +961,23 @@ const SCENES: Record<SceneId, Scene> = {
 
   path_a2: {
     id: "path_a2",
-    title: "Tiếng Nói Lịch Sử",
+    title: "Phien Dieu Tran Cong Khai",
     bgAccent: "var(--primary)",
-    setting: "Hội trường Quốc hội · Hà Nội · 2030",
+    setting: "Hoi truong dieu tran lao dong so · Ha Noi · 2030",
     narrative:
-      "Năm 2030. Bạn đứng trước microphone tại Hội trường Diên Hồng, đọc tham luận cuối cùng trước khi Quốc hội bỏ phiếu thông qua Luật Lao Động Số. Phía sau bạn: 50 đại diện công nhân từ 30 tỉnh thành. Bên ngoài, 5,000 người đang chờ kết quả...",
+      "Ho so Sang Nam tro thanh tam guong cho hang tram doanh nghiep dang tu dong hoa. Ban dung truoc hoi dong dieu tran, phia sau la cong nhan, phia doi dien la dai dien cac tap doan noi rang cong nghe se tu sua tat ca. Ba phut cuoi cung thuoc ve ban.",
     npc: {
-      name: "Chủ tọa",
+      name: "Chu toa",
       emoji: "🏛️",
-      role: "Đại biểu Quốc hội",
-      dialogue: "Đại biểu có 3 phút để kết luận trước khi Quốc hội biểu quyết.",
+      role: "Chu tich phien dieu tran",
+      dialogue:
+        "Xin ket luan ro: trong ky nguyen AI, nha nuoc phai bao ve cai gi truoc tien - toc do dau tu hay quyen ton tai cua nguoi lao dong?",
     },
     choices: [
       {
-        text: "Nhấn mạnh: AI và robot là tư liệu sản xuất mới – ai kiểm soát chúng, người đó quyết định tương lai lao động Việt Nam. Phải đảm bảo người lao động có tiếng nói!",
+        text: "Ban khang dinh AI va robot la tu lieu san xuat moi, nen nguoi lao dong phai co quyen duoc thong tin, duoc dam phan va duoc huong mot phan thanh qua.",
         feedback:
-          "Tiếng vỗ tay vang lên. Luật được thông qua với 78% phiếu thuận. Lịch sử ghi nhận tên bạn.",
+          "Hoi truong dap lai bang tieng vo tay hiem hoi trong mot phien dieu tran day tinh toan ky thuat. Ban khong xin cho nguoi lao dong mot cho dung, ban buoc he thong phai thua nhan ho la chu the chinh tri cua qua trinh chuyen doi.",
         effect: {
           social: 30,
           knowledge: 10,
@@ -770,9 +987,9 @@ const SCENES: Record<SceneId, Scene> = {
         next: "ending_a",
       },
       {
-        text: "Nhấn mạnh: Không ai bị bỏ lại phía sau – đây là nguyên tắc cốt lõi của CNH–HĐH định hướng XHCN Việt Nam.",
+        text: "Ban ket lai bang mot cau don gian: khong ai duoc bi bien thanh phan hao mon cua tu dong hoa.",
         feedback:
-          "Cả hội trường im lặng rồi bùng vỡ tiếng vỗ tay. Luật được thông qua. Ngày lịch sử.",
+          "Cau noi ngan hon nhung danh thang vao dieu ca hoi truong dang ne tranh. Khi phien bo phieu ket thuc, mot khung phap ly moi mo ra cho hang trieu lao dong.",
         effect: { social: 25, willpower: 20, gem: "Kiến Tạo Lịch Sử" },
         next: "ending_a",
       },
@@ -781,23 +998,23 @@ const SCENES: Record<SceneId, Scene> = {
 
   path_b1: {
     id: "path_b1",
-    title: "Học Lại Từ Đầu",
+    title: "Phong Dieu Phoi Thuat Toan",
     bgAccent: "var(--accent)",
-    setting: "Trường FPT · Hà Nội · 2026",
+    setting: "Chuong trinh tai dao tao ky su he thong · 2026",
     narrative:
-      'Bạn đăng ký chương trình "AI Engineer Fast Track" – 18 tháng học từ sáng đến tối. Ban ngày code Python, ban đêm đọc về machine learning. Tiền tiết kiệm dần cạn. Nhưng mỗi tuần bạn cảm thấy rõ: bộ não mình đang trở thành thứ khó bị thay thế nhất trên thị trường...',
+      "Ban roi Sang Nam mot thoi gian de lao vao mot khoa hoc khac thuong: khong day ban cach code nhanh nhat, ma day cach doc he thong san xuat nhu doc mot cau truc quyen luc. Ban hoc machine learning, he thong toi uu, logistic va ca kinh te chinh tri. Moi lan mo hinh hoa mot day chuyen, ban lai nho toi khuon mat nguoi bi goi ten trong bang cat giam nam nao.",
     npc: {
-      name: "Thầy Khoa",
+      name: "Thay Khoa",
       emoji: "👨‍💻",
-      role: "Giảng viên AI",
+      role: "Huong dan ky thuat",
       dialogue:
-        "Em biết tại sao AI engineer khó bị thay thế không? Vì đây là LAO ĐỘNG PHỨC TẠP – 1 giờ lao động phức tạp = nhiều giờ lao động giản đơn theo Mác. Thú vị là: chúng ta đang tạo ra thứ sẽ thay thế lao động khác – mâu thuẫn biện chứng thú vị!",
+        "Lao dong phuc tap tao ra gia tri cao hon khong co nghia no vo can. Van de la em dung tri tue ky thuat de phuc vu cau truc nao: cat giam con nguoi hay mo duong cho ho song duoc voi cong nghe?",
     },
     choices: [
       {
-        text: "Chuyên về AI xã hội: hệ thống hỗ trợ công nhân chuyển đổi nghề, matching kỹ năng với việc làm mới.",
+        text: "Ban xay dung he thong AI phuc vu chuyen nghe cho cong nhan, uu tien ghep ky nang hien co voi lo trinh hoc ngan nhat de vao viec moi.",
         feedback:
-          'Thầy Khoa: "Tuyệt vời! Dùng AI để giải quyết vấn đề AI gây ra – đây là tư duy biện chứng thực sự!"',
+          "De tai cua ban lam thay doi khong khi ca lop. Day khong con la bai tap toi uu hoa may, ma la bai toan lam sao de lao dong song khong bi vut ra ngoai moi lan cong nghe nhay vot.",
         effect: {
           knowledge: 20,
           social: 15,
@@ -805,12 +1022,12 @@ const SCENES: Record<SceneId, Scene> = {
           gem: "Lao Động Phức Tạp",
         },
         next: "path_b2",
-        conceptTag: "Lao Động Phức Tạp",
+        conceptTag: "AI chuyen nghe",
       },
       {
-        text: "Chuyên về AI tối ưu hóa sản xuất – nhu cầu thực tế nhất của thị trường doanh nghiệp.",
+        text: "Ban chon di sau vao AI toi uu san xuat, muon nam tan goc cong cu ma doanh nghiep dang dung de tai cau truc xuong may.",
         feedback:
-          'Thầy Khoa: "Thực tế và thu nhập cao. Nhưng hãy cân nhắc tác động xã hội dài hạn của công việc mình làm."',
+          "Lua chon nay khong vo toi, nhung no bat ban nhin thang vao nghich ly: cang gioi toi uu, ban cang phai doi dien voi cau hoi minh dang toi uu cho ai.",
         effect: { wealth: 25, knowledge: 15 },
         next: "path_b2",
       },
@@ -819,23 +1036,23 @@ const SCENES: Record<SceneId, Scene> = {
 
   path_b2: {
     id: "path_b2",
-    title: "Bước Nhảy Vọt",
+    title: "Mang Chuyen Nghe VietTransition",
     bgAccent: "var(--accent)",
-    setting: "VinAI Research · Hà Nội · 2030",
+    setting: "Phong nghien cuu ung dung lao dong so · 2030",
     narrative:
-      'Năm 2030. Bạn là AI Engineer tại VinAI Research. Dự án của bạn: "VietTransition AI" – hệ thống phân tích kỹ năng công nhân và gợi ý con đường chuyển đổi nghề phù hợp nhất. Đã giúp 300,000 công nhân tìm việc mới trong 18 tháng...',
+      "Bon nam sau, ban la nguoi dung dau mot du an AI khong nham thay nguoi nhanh hon, ma giup nguoi lao dong tim duong qua song shock tu dong hoa. VietTransition khong tinh ai 'du thua'; he thong tinh nhung ky nang co the duoc chuyen hoa, nhung khu vuc dang khat nhan luc, va nhung lo trinh hoc ngắn nhat de di tiep.",
     npc: {
-      name: "GĐ VinAI",
+      name: "GĐ du an",
       emoji: "🔬",
-      role: "Giám đốc Nghiên cứu",
+      role: "Hoi dong trien khai",
       dialogue:
-        "Dự án của bạn vừa được Bộ LĐTBXH chọn triển khai toàn quốc. Lần đầu tiên một sản phẩm AI Made in Vietnam giải quyết vấn đề lao động theo cách riêng của Việt Nam.",
+        "Day la thoi diem quyet dinh. Neu mo he thong ra, xa hoi cung huong loi nhung quy tac kinh doanh cua du an se thay doi. Neu dong no lai, em se co nguon luc de mo rong nhanh hon.",
     },
     choices: [
       {
-        text: "Mở mã nguồn VietTransition – để cả xã hội cùng phát triển, không độc quyền.",
+        text: "Ban mo ma nguon va cong bo bo tieu chuan danh gia de dia phuong, cong doan va truong nghe cung co the phat trien.",
         feedback:
-          "Quyết định táo bạo. Hàng trăm kỹ sư cùng cải thiện. Ảnh hưởng lan rộng hơn nhiều.",
+          "Quyet dinh nay lam du an khong con thuoc rieng mot to chuc. Anh huong cua no lan nhanh hon thu nhap ca nhan cua ban, va lan dau tien mot he thong AI lao dong duoc xem la ha tang chung.",
         effect: {
           social: 25,
           knowledge: 10,
@@ -845,9 +1062,9 @@ const SCENES: Record<SceneId, Scene> = {
         next: "ending_b",
       },
       {
-        text: "Thương mại hóa VietTransition để tự chủ tài chính và mở rộng quy mô nhanh hơn.",
+        text: "Ban thuong mai hoa co kiem soat de mo rong nhanh, giu nhom trung tam du nguon luc cap nhat he thong lien tuc.",
         feedback:
-          "Bền vững về tài chính, mở rộng nhanh hơn. Thu nhập tốt, ảnh hưởng rộng theo cách khác.",
+          "Ban chap nhan di tren mot day can bang mong manh giua tac dong xa hoi va suc ep thi truong. Duoi cach nao, du an van dat lai cau hoi ban dau cua Sang Nam cho ca nuoc.",
         effect: { wealth: 20, knowledge: 10, social: 10 },
         next: "ending_b",
       },
@@ -856,23 +1073,23 @@ const SCENES: Record<SceneId, Scene> = {
 
   path_c1: {
     id: "path_c1",
-    title: "Xây Dựng Mô Hình Mới",
+    title: "Xuong So Huu Chung",
     bgAccent: "var(--secondary)",
-    setting: "Nhà kho cũ · Bình Dương · 2026",
+    setting: "Nha kho cu tai Thu Dau Mot · 2026",
     narrative:
-      'Bạn tập hợp 25 cựu công nhân Sáng Nam. Mỗi người góp 5 triệu đồng. Cộng với khoản vay Quỹ Phát Triển HTX, bạn mua được 3 robot hàn và thuê không gian sản xuất. Hợp tác xã số đầu tiên ở Bình Dương ra đời. Tên: "SángTạo Coop"...',
+      "Ban quay lai nhung nguoi bi day ra khoi Sang Nam va de xuat mot van de ma luc dau nghe nhu truyen tuong tuong: neu tu dong hoa da den, tai sao cong nhan khong cung nhau so huu no? Sau ba thang gom von, vay quy ho tro va tan dung mot nha kho cu, nhom cua ban lap duoc xuong thu nghiem dau tien voi ba cum may ban tu dong va mot quy che tu quan.",
     npc: {
-      name: "Anh Bình",
+      name: "Anh Binh",
       emoji: "🤝",
-      role: "Thành Viên Hợp Tác Xã",
+      role: "Thanh vien sang lap",
       dialogue:
-        "Lần đầu tiên tôi cảm thấy robot là của MÌNH chứ không phải đang thay thế mình. Chúng ta SỞ HỮU tư liệu sản xuất – điều Mác coi là chìa khóa giải phóng người lao động!",
+        "Lan dau tien toi khong so robot nua. Toi so minh se tro ve cach cu, de nguoi khac so huu may, con minh chi duoc phep song neu hop voi toc do cua no.",
     },
     choices: [
       {
-        text: "Áp dụng dân chủ công nghiệp: mỗi thành viên một phiếu, lợi nhuận chia theo đóng góp lao động.",
+        text: "Ban chot nguyen tac moi thanh vien mot phieu, loi nhuan chia truoc tien theo lao dong dong gop va quy du phong chung.",
         feedback:
-          "Thành viên hoan nghênh nhiệt liệt. Năng suất tăng 40% trong 6 tháng – khi người lao động là chủ!",
+          "Xuong nho, may it, nhung khong khi khac han. Moi quyet dinh ve may moc gio deu quay lai cau hoi ai duoc huong thanh qua. Day la luc ly luan ve so huu tro thanh quy tac van hanh moi ngay.",
         effect: {
           social: 20,
           knowledge: 15,
@@ -880,12 +1097,12 @@ const SCENES: Record<SceneId, Scene> = {
           gem: "Dân Chủ Công Nghiệp",
         },
         next: "path_c2",
-        conceptTag: "Công Nhân Kiểm Soát Tư Liệu SX",
+        conceptTag: "Dong so huu may moc",
       },
       {
-        text: "Ưu tiên tái đầu tư lợi nhuận vào robot mới và đào tạo – phát triển quy mô nhanh hơn.",
+        text: "Ban uu tien tai dau tu manh vao may va dao tao, muon chung minh mo hinh cong nhan so huu van co the lon nhanh.",
         feedback:
-          "Chiến lược tăng trưởng tốt. HTX mở rộng gấp đôi sau 1 năm. Ảnh hưởng lan rộng.",
+          "Ap luc lon hon, nhung no giup mo hinh cua ban thoat khoi than phan bieu tuong. Moi don hang moi la mot lan chung minh rang van de khong phai robot hay khong robot, ma la ai nam quyen doi voi robot.",
         effect: { wealth: 15, social: 15, knowledge: 10 },
         next: "path_c2",
       },
@@ -894,23 +1111,23 @@ const SCENES: Record<SceneId, Scene> = {
 
   path_c2: {
     id: "path_c2",
-    title: "Nhân Rộng Mô Hình",
+    title: "Lien Minh Day Chuyen",
     bgAccent: "var(--secondary)",
-    setting: "Hội nghị HTX Số · TP.HCM · 2030",
+    setting: "Hoi nghi lien ket hop tac xa so · 2030",
     narrative:
-      "Năm 2030. SángTạo Coop đã nhân rộng ra 45 đơn vị ở 8 tỉnh thành, với 4,500 công nhân–chủ sở hữu. Hội nghị hôm nay bàn về Liên Minh HTX Số Việt Nam...",
+      "Bon nam sau, mo hinh cua ban khong con la mot xuong thu nghiem. Nhieu nhom lao dong bi cat giam tu cac khu cong nghiep khac da nhan ban no thanh mang luoi san xuat moi. Cac to hop tac xa chia se may, du lieu don hang, chuong trinh dao tao va ca quy phuc loi. Gio day, van de khong con la co ton tai duoc hay khong, ma la co giu duoc ban chat khi mo rong hay khong.",
     npc: {
-      name: "Đại Diện ADB",
+      name: "Dai dien quy dau tu phat trien",
       emoji: "🌏",
-      role: "Ngân hàng Phát triển Châu Á",
+      role: "Nha dau tu quoc te",
       dialogue:
-        "Chúng tôi muốn đầu tư 50 triệu USD vào mô hình HTX số Việt Nam. Đây là giải pháp độc đáo chưa thấy ở bất kỳ quốc gia nào.",
+        "Neu chung toi bom von, quy mo cua mo hinh nay se tang vot. Nhung von lon luon di kem quyen anh huong. Cac anh chi san sang giu ranh gioi den dau?",
     },
     choices: [
       {
-        text: "Chấp nhận đầu tư với điều kiện bất khả xâm phạm: nguyên tắc dân chủ công nhân không bị thay đổi.",
+        text: "Ban nhan von chi neu dieu le bat buoc giu quyen phieu cua cong nhan va gioi han ty le can thiep cua nha dau tu.",
         feedback:
-          "Quyết định khó nhưng đúng. ADB đồng ý. Mô hình mở rộng nhanh mà vẫn giữ bản chất.",
+          "Cuoc dam phan keo dai den nua dem. Khi thoa thuan duoc ky, mo hinh cua ban khong chi lon len ma con dat duoc mot tien le: von co the vao, nhung quyen lam chu cua lao dong khong duoc bi pha loang.",
         effect: {
           social: 25,
           wealth: 15,
@@ -920,9 +1137,9 @@ const SCENES: Record<SceneId, Scene> = {
         next: "ending_c",
       },
       {
-        text: "Từ chối – mở rộng từ từ bằng nội lực để giữ tính độc lập hoàn toàn.",
+        text: "Ban tu choi von lon, chon phat trien cham hon de giu mo hinh hoan toan doc lap va do cong nhan tu quyet.",
         feedback:
-          "Tăng trưởng chậm hơn nhưng hoàn toàn độc lập. Mô hình thuần Việt Nam.",
+          "Quyet dinh nay lam nhieu nguoi sot ruot, nhung no giu cho lien minh cua ban mot nhan cach ro rang. Toc do cham hon, nhung huong di khong bi doi chu.",
         effect: { willpower: 20, social: 20, knowledge: 5 },
         next: "ending_c",
       },
@@ -1023,7 +1240,636 @@ const determineEnding = (char: Character): EndingId => {
   return "ending_c";
 };
 
-// ═══════════════════ SUB-COMPONENTS ═══════════════════
+const checkAchievements = (char: Character, sceneId: SceneId): string[] => {
+  const newAchievements: string[] = [];
+  Object.values(ACHIEVEMENTS).forEach((achievement) => {
+    if (
+      !char.achievements.includes(achievement.id) &&
+      achievement.condition(char, sceneId)
+    ) {
+      newAchievements.push(achievement.id);
+    }
+  });
+  return newAchievements;
+};
+
+// ═══════════════════ CINEMA SCREEN ═══════════════════
+
+function ChallengeScreen({
+  challenge,
+  character,
+  onAnswered,
+}: {
+  challenge: Challenge;
+  character: Character;
+  onAnswered: (optionIndex: number) => void;
+}) {
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [answered, setAnswered] = useState(false);
+  const roleHint = challenge.hints?.[character.characterClass];
+
+  const handleSubmit = (index: number) => {
+    setSelectedOption(index);
+    setAnswered(true);
+    setTimeout(() => onAnswered(index), 2000);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      style={{
+        minHeight: "100vh",
+        background:
+          "linear-gradient(135deg, rgba(15, 23, 42, 0.96) 0%, rgba(88, 28, 135, 0.82) 50%, rgba(88, 86, 214, 0.18) 100%)",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "40px 20px",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 900,
+          width: "100%",
+        }}
+      >
+        <div
+          style={{
+            padding: 26,
+            marginBottom: 24,
+            borderRadius: 16,
+            border: "1px solid rgba(255,255,255,0.12)",
+            background: "rgba(9, 14, 27, 0.62)",
+            boxShadow: "0 20px 50px rgba(0,0,0,0.22)",
+            backdropFilter: "blur(12px)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 16,
+              marginBottom: 16,
+              flexWrap: "wrap",
+            }}
+          >
+            <div>
+              <div
+                style={{
+                  fontSize: 11,
+                  fontWeight: "900",
+                  color: "#fbbf24",
+                  letterSpacing: 2,
+                  marginBottom: 8,
+                  textTransform: "uppercase",
+                }}
+              >
+                Bien Co Hien Truong
+              </div>
+              <h2
+                style={{
+                  margin: 0,
+                  color: "white",
+                  fontSize: 28,
+                  fontWeight: "900",
+                  fontFamily: "var(--font-slab)",
+                  lineHeight: 1.2,
+                }}
+              >
+                {challenge.title}
+              </h2>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                padding: "10px 14px",
+                borderRadius: 999,
+                background: "rgba(255,255,255,0.06)",
+                border: "1px solid rgba(255,255,255,0.1)",
+              }}
+            >
+              <span style={{ fontSize: 30 }}>{challenge.emoji}</span>
+              <div>
+                <div
+                  style={{
+                    color: "rgba(255,255,255,0.6)",
+                    fontSize: 10,
+                    fontWeight: "900",
+                    textTransform: "uppercase",
+                    letterSpacing: 1,
+                  }}
+                >
+                  Dang nhap vai
+                </div>
+                <div
+                  style={{
+                    color: "white",
+                    fontSize: 13,
+                    fontWeight: "900",
+                  }}
+                >
+                  {character.classLabel}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1.4fr 1fr",
+              gap: 18,
+            }}
+          >
+            <div
+              style={{
+                padding: 18,
+                borderRadius: 12,
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}
+            >
+              <div
+                style={{
+                  color: "#93c5fd",
+                  fontSize: 11,
+                  fontWeight: "900",
+                  letterSpacing: 1,
+                  textTransform: "uppercase",
+                  marginBottom: 10,
+                }}
+              >
+                Tinh huong
+              </div>
+              <p
+                style={{
+                  margin: 0,
+                  color: "rgba(255,255,255,0.88)",
+                  fontSize: 14,
+                  lineHeight: 1.7,
+                }}
+              >
+                {challenge.scenario}
+              </p>
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+              }}
+            >
+              <div
+                style={{
+                  padding: 16,
+                  borderRadius: 12,
+                  background: "rgba(251, 191, 36, 0.08)",
+                  border: "1px solid rgba(251, 191, 36, 0.18)",
+                }}
+              >
+                <div
+                  style={{
+                    color: "#fbbf24",
+                    fontSize: 11,
+                    fontWeight: "900",
+                    letterSpacing: 1,
+                    textTransform: "uppercase",
+                    marginBottom: 8,
+                  }}
+                >
+                  Muc cuoc
+                </div>
+                <p
+                  style={{
+                    margin: 0,
+                    color: "rgba(255,255,255,0.82)",
+                    fontSize: 13,
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {challenge.stakes}
+                </p>
+              </div>
+
+              {roleHint && (
+                <div
+                  style={{
+                    padding: 16,
+                    borderRadius: 12,
+                    background: "rgba(34, 197, 94, 0.08)",
+                    border: "1px solid rgba(34, 197, 94, 0.18)",
+                  }}
+                >
+                  <div
+                    style={{
+                      color: "#86efac",
+                      fontSize: 11,
+                      fontWeight: "900",
+                      letterSpacing: 1,
+                      textTransform: "uppercase",
+                      marginBottom: 8,
+                    }}
+                  >
+                    Loi the vai tro
+                  </div>
+                  <p
+                    style={{
+                      margin: 0,
+                      color: "rgba(255,255,255,0.82)",
+                      fontSize: 13,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {roleHint}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          style={{
+            textAlign: "center",
+            marginBottom: 28,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: "900",
+              color: "rgba(255,255,255,0.7)",
+              letterSpacing: 2,
+              marginBottom: 15,
+              textTransform: "uppercase",
+            }}
+          >
+            Chon cach xu ly tinh huong
+          </div>
+          <h2
+            style={{
+              fontSize: 26,
+              fontFamily: "var(--font-slab)",
+              margin: 0,
+              color: "white",
+              fontWeight: "900",
+              lineHeight: 1.35,
+            }}
+          >
+            {challenge.question}
+          </h2>
+        </motion.div>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
+            marginBottom: 30,
+          }}
+        >
+          {challenge.options.map((option, i) => (
+            <motion.button
+              key={i}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.3 + i * 0.1 }}
+              onClick={() => !answered && handleSubmit(i)}
+              disabled={answered}
+              style={{
+                padding: "20px",
+                background:
+                  selectedOption === i
+                    ? option.isCorrect
+                      ? "linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(34, 197, 94, 0.1))"
+                      : "linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(239, 68, 68, 0.1))"
+                    : "rgba(255,255,255,0.07)",
+                border:
+                  selectedOption === i
+                    ? option.isCorrect
+                      ? "1px solid rgba(34, 197, 94, 0.5)"
+                      : "1px solid rgba(239, 68, 68, 0.5)"
+                    : "1px solid rgba(255,255,255,0.12)",
+                color: "white",
+                fontSize: 16,
+                fontWeight: "900",
+                borderRadius: 12,
+                cursor: answered ? "default" : "pointer",
+                transition: "all 0.3s ease",
+                textAlign: "left",
+                opacity: answered && selectedOption !== i ? 0.5 : 1,
+                backdropFilter: "blur(8px)",
+                boxShadow: "0 16px 30px rgba(0,0,0,0.12)",
+              }}
+              onMouseEnter={(e: any) => {
+                if (!answered) {
+                  e.target.style.background = "rgba(255,255,255,0.12)";
+                  e.target.style.borderColor = "rgba(255,255,255,0.24)";
+                }
+              }}
+              onMouseLeave={(e: any) => {
+                if (!answered) {
+                  e.target.style.background = "rgba(255,255,255,0.07)";
+                  e.target.style.borderColor = "rgba(255,255,255,0.12)";
+                }
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 12,
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 20,
+                    minWidth: 30,
+                    color:
+                      selectedOption === i
+                        ? option.isCorrect
+                          ? "#86efac"
+                          : "#fca5a5"
+                        : "#fbbf24",
+                  }}
+                >
+                  {selectedOption === i
+                    ? option.isCorrect
+                      ? "✓"
+                      : "✗"
+                    : i + 1}
+                </span>
+                <span
+                  style={{
+                    lineHeight: 1.6,
+                    color: "rgba(255,255,255,0.92)",
+                  }}
+                >
+                  {option.text}
+                </span>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+
+        <AnimatePresence>
+          {selectedOption !== null && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              style={{
+                padding: 20,
+                background: challenge.options[selectedOption].isCorrect
+                  ? "rgba(34, 197, 94, 0.1)"
+                  : "rgba(239, 68, 68, 0.1)",
+                border: challenge.options[selectedOption].isCorrect
+                  ? "1px solid rgba(34, 197, 94, 0.3)"
+                  : "1px solid rgba(239, 68, 68, 0.3)",
+                borderRadius: 12,
+                textAlign: "center",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              <p
+                style={{
+                  margin: 0,
+                  color: "white",
+                  fontSize: 15,
+                  lineHeight: 1.6,
+                }}
+              >
+                {challenge.options[selectedOption].feedback}
+              </p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════ CINEMA SCREEN ═══════════════════
+
+function CinemaScreen({
+  endingId,
+  character,
+  onComplete,
+}: {
+  endingId: EndingId;
+  character: Character;
+  onComplete: () => void;
+}) {
+  const ending = ENDINGS[endingId];
+  const [showSkip, setShowSkip] = useState(false);
+
+  useEffect(() => {
+    setTimeout(() => setShowSkip(true), 2000);
+    const timer = setTimeout(() => onComplete(), 8000);
+    return () => clearTimeout(timer);
+  }, [onComplete]);
+
+  const scenes = [
+    {
+      title: "Hành Trình Kết Thúc",
+      text: `"${character.name}" đã hoàn thành hành trình của mình...`,
+      duration: 2000,
+    },
+    {
+      title: "Kết Quả",
+      text: `Quyết định của bạn tạo nên sự thay đổi...`,
+      duration: 2000,
+    },
+    {
+      title: "Tương Lai",
+      text: `Năm ${ending.year}, những gì bạn đã làm trở thành hiện thực...`,
+      duration: 2000,
+    },
+  ];
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        background:
+          "linear-gradient(180deg, #000 0%, rgba(88, 86, 214, 0.2) 50%, #000 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Animated background */}
+      <motion.div
+        animate={{ opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 4, repeat: Infinity }}
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "radial-gradient(circle at center, rgba(88, 86, 214, 0.2) 0%, transparent 70%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Cinema content */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.8 }}
+        style={{
+          textAlign: "center",
+          zIndex: 10,
+          maxWidth: 800,
+        }}
+      >
+        {/* Large emoji */}
+        <motion.div
+          animate={{ scale: [1, 1.2, 1], rotate: [0, 5, -5, 0] }}
+          transition={{ duration: 3, repeat: Infinity }}
+          style={{
+            fontSize: 200,
+            marginBottom: 40,
+            filter: "drop-shadow(0 0 40px rgba(88, 86, 214, 0.5))",
+          }}
+        >
+          {ending.emoji}
+        </motion.div>
+
+        {/* Title */}
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 0.3 }}
+          style={{
+            fontSize: 56,
+            fontFamily: "var(--font-slab)",
+            color: "white",
+            margin: "0 0 30px 0",
+            fontWeight: "900",
+            textShadow:
+              "0 0 30px rgba(88, 86, 214, 0.5), 0 0 60px rgba(88, 86, 214, 0.3)",
+            textTransform: "uppercase",
+            letterSpacing: 2,
+            lineHeight: 1.3,
+          }}
+        >
+          {ending.title}
+        </motion.h1>
+
+        {/* Narrative */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1.5, delay: 0.8 }}
+          style={{
+            fontSize: 24,
+            color: "rgba(255,255,255,0.9)",
+            margin: "0 0 40px 0",
+            fontStyle: "italic",
+            lineHeight: 1.6,
+            textShadow: "0 0 20px rgba(0,0,0,0.7)",
+          }}
+        >
+          "{ending.narrative.slice(0, 150)}..."
+        </motion.p>
+
+        {/* Character info */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, delay: 1.3 }}
+          style={{
+            display: "flex",
+            gap: 40,
+            justifyContent: "center",
+            alignItems: "center",
+            marginBottom: 40,
+            fontSize: 20,
+            color: "rgba(255,255,255,0.7)",
+          }}
+        >
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 48, marginBottom: 8 }}>
+              {character.emoji}
+            </div>
+            <div>{character.name}</div>
+          </div>
+          <div style={{ fontSize: 40 }}>→</div>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 48, marginBottom: 8 }}>📅</div>
+            <div>Năm {ending.year}</div>
+          </div>
+        </motion.div>
+
+        {/* Progress indicator */}
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: "100%" }}
+          transition={{ duration: 7.5, ease: "linear" }}
+          style={{
+            height: 3,
+            background:
+              "linear-gradient(90deg, var(--primary), rgba(88, 86, 214, 0.5))",
+            borderRadius: 2,
+            marginBottom: 20,
+          }}
+        />
+
+        {/* Skip button */}
+        <AnimatePresence>
+          {showSkip && (
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              onClick={onComplete}
+              style={{
+                padding: "10px 20px",
+                background: "rgba(88, 86, 214, 0.1)",
+                border: "1px solid rgba(88, 86, 214, 0.4)",
+                color: "rgba(255,255,255,0.6)",
+                fontSize: 12,
+                fontWeight: "900",
+                borderRadius: 4,
+                cursor: "pointer",
+                textTransform: "uppercase",
+                letterSpacing: 1,
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e: any) => {
+                e.target.style.background = "rgba(88, 86, 214, 0.2)";
+                e.target.style.borderColor = "rgba(88, 86, 214, 0.6)";
+                e.target.style.color = "rgba(255,255,255,0.9)";
+              }}
+              onMouseLeave={(e: any) => {
+                e.target.style.background = "rgba(88, 86, 214, 0.1)";
+                e.target.style.borderColor = "rgba(88, 86, 214, 0.4)";
+                e.target.style.color = "rgba(255,255,255,0.6)";
+              }}
+            >
+              ⏭ Bỏ Qua
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </motion.div>
+    </div>
+  );
+}
+
+// ═══════════════════ ENDING SCREEN ═══════════════════
 
 function StatBar({
   label,
@@ -1253,6 +2099,7 @@ export default function RPGGame({
 
   // ── Character creation ──
   const [selectedClass, setSelectedClass] = useState<CharacterClass>("worker");
+  const [currentChallenge, setCurrentChallenge] = useState<string | null>(null);
 
   const startGame = () => {
     const cfg = CLASS_CONFIGS[selectedClass];
@@ -1264,9 +2111,11 @@ export default function RPGGame({
       stats: { ...cfg.stats },
       gems: [],
       history: [],
+      achievements: [],
     };
     setCharacter(newChar);
-    setPhase("intro_slides");
+    setSceneId("prologue");
+    setPhase("scene");
   };
 
   const finishSlides = () => {
@@ -1317,11 +2166,24 @@ export default function RPGGame({
       ? [...character.gems, choice.effect.gem]
       : character.gems;
     const newHistory = [...character.history, choice.text.slice(0, 50)];
+    const newAchievements = [
+      ...character.achievements,
+      ...checkAchievements(
+        {
+          ...character,
+          stats: newStats,
+          gems: newGems,
+          history: newHistory,
+        },
+        sceneId,
+      ),
+    ];
     setCharacter({
       ...character,
       stats: newStats,
       gems: newGems,
       history: newHistory,
+      achievements: newAchievements,
     });
     setStatDelta(delta);
     setShowDelta(true);
@@ -1337,6 +2199,51 @@ export default function RPGGame({
     setFeedbackMsg(finalFeedback);
     setPendingNext(choice.next);
     setPhase("feedback");
+  };
+
+  // ── Challenge logic ──
+  const handleChallengeAnswered = (optionIndex: number) => {
+    const challenge = CHALLENGES[currentChallenge || ""];
+    if (!challenge || !character) return;
+
+    const option = challenge.options[optionIndex];
+    const isCorrect = option.isCorrect;
+    const reward = option.reward;
+    const penalty = isCorrect ? { knowledge: 0 } : challenge.penalty;
+    const effect = isCorrect ? reward : penalty;
+
+    const newStats = applyEffect(character.stats, effect);
+    const newAchievements = [
+      ...character.achievements,
+      ...checkAchievements(
+        {
+          ...character,
+          stats: newStats,
+          gems: character.gems,
+          history: character.history,
+        },
+        sceneId,
+      ),
+    ];
+
+    setCharacter({
+      ...character,
+      stats: newStats,
+      achievements: newAchievements,
+    });
+
+    setStatDelta(effect);
+    setShowDelta(true);
+    setTimeout(() => setShowDelta(false), 2000);
+
+    // Feedback
+    const fbk = isCorrect ? `✓ ${option.feedback}` : `✗ ${option.feedback}`;
+    setFeedbackMsg(fbk);
+
+    setTimeout(() => {
+      setCurrentChallenge(null);
+      setPhase("scene");
+    }, 2500);
   };
 
   // ── Advance from feedback ──
@@ -1355,7 +2262,7 @@ export default function RPGGame({
     } else if (pendingNext.startsWith("ending_")) {
       const eid = pendingNext as EndingId;
       setEndingId(eid);
-      setPhase("ending");
+      setPhase("cinema");
     } else {
       setSceneId(pendingNext as SceneId);
       setPhase("scene");
@@ -1436,7 +2343,7 @@ export default function RPGGame({
     if (endingId !== computedEnding && !endingId) {
       setEndingId(computedEnding);
     }
-    setPhase("ending");
+    setPhase("cinema");
   };
 
   // ═══ RENDER ═══
@@ -1456,6 +2363,28 @@ export default function RPGGame({
         setSelectedClass={setSelectedClass}
         onStart={startGame}
         onExit={onExit}
+      />
+    );
+  }
+
+  if (phase === "cinema" && endingId) {
+    return (
+      <CinemaScreen
+        endingId={endingId}
+        character={character!}
+        onComplete={() => setPhase("ending")}
+      />
+    );
+  }
+
+  if (phase === "challenge" && currentChallenge) {
+    return (
+      <ChallengeScreen
+        challenge={CHALLENGES[currentChallenge]}
+        character={character!}
+        onAnswered={(idx) => {
+          handleChallengeAnswered(idx);
+        }}
       />
     );
   }
@@ -1496,10 +2425,10 @@ export default function RPGGame({
               setCurrentIndex={setCurrentSlideIndex}
               onFinish={finishSlides}
             />
-          ) : phase === "battle" ? (
+          ) : phase === "battle" && character ? (
             <BattleScreen
               battle={battle}
-              character={character!}
+              character={character}
               onChoose={handleBattleChoice}
               onAdvance={advanceBattle}
               onFinish={finishBattle}
@@ -1510,12 +2439,12 @@ export default function RPGGame({
               setEconomy={setEconomy}
               onFinish={finishManagement}
             />
-          ) : phase === "ai_usage" && character ? (
+          ) : phase === "ai_usage" ? (
             <AIUsageScreen
               character={character}
-              onStart={() => setPhase("scene")}
+              onStart={() => setPhase("landing")}
             />
-          ) : (
+          ) : character ? (
             <SceneScreen
               scene={scene}
               phase={phase}
@@ -1524,8 +2453,12 @@ export default function RPGGame({
               statDelta={statDelta}
               onChoice={handleChoice}
               onAdvance={advanceFromFeedback}
-              character={character!}
+              character={character}
             />
+          ) : (
+            <div style={{ textAlign: "center", padding: "100px 20px" }}>
+              <p>Loading game...</p>
+            </div>
           )}
         </div>
 
@@ -1995,31 +2928,52 @@ function SceneScreen({
   onAdvance: () => void;
   character: Character;
 }) {
+  const accent = scene.bgAccent || "var(--primary)";
+
   return (
-    <div key={scene.id} className="scale-in">
+    <div
+      key={scene.id}
+      className="scale-in"
+      style={{
+        position: "relative",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: `radial-gradient(circle at top right, ${accent}18, transparent 30%), radial-gradient(circle at bottom left, rgba(255,255,255,0.18), transparent 25%)`,
+          pointerEvents: "none",
+        }}
+      />
+
       {/* Setting banner */}
       <div
         style={{
-          background: "var(--muted)",
-          border: "1px solid var(--border)",
-          padding: "10px 16px",
-          marginBottom: 16,
+          background: "linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.36))",
+          border: "1px solid rgba(88, 60, 43, 0.35)",
+          padding: "12px 16px",
+          marginBottom: 18,
           display: "flex",
           alignItems: "center",
           gap: 10,
+          position: "relative",
+          zIndex: 1,
+          boxShadow: "0 8px 24px rgba(88, 60, 43, 0.08)",
         }}
       >
         <div
           style={{
             width: 12,
             height: 12,
-            background: "var(--primary)",
+            background: accent,
             flexShrink: 0,
+            boxShadow: `0 0 0 4px ${accent}22`,
           }}
         />
         <span
           style={{
-            color: "var(--primary)",
+            color: accent,
             fontSize: 11,
             fontWeight: "900",
             textTransform: "uppercase",
@@ -2034,12 +2988,14 @@ function SceneScreen({
       <h2
         style={{
           color: "var(--foreground)",
-          marginBottom: 16,
-          fontSize: "clamp(18px, 3vw, 26px)",
+          marginBottom: 18,
+          fontSize: "clamp(24px, 3.2vw, 36px)",
           textTransform: "uppercase",
-          borderBottom: "2px solid var(--primary)",
+          borderBottom: `3px solid ${accent}`,
           display: "inline-block",
-          paddingBottom: 4,
+          paddingBottom: 6,
+          position: "relative",
+          zIndex: 1,
         }}
       >
         {scene.title}
@@ -2047,15 +3003,51 @@ function SceneScreen({
 
       {/* Narrative */}
       <div
-        className="industrial-card"
-        style={{ padding: 22, marginBottom: 18 }}
+        style={{
+          padding: 26,
+          marginBottom: 18,
+          borderRadius: 18,
+          background:
+            "linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.56))",
+          border: "1px solid rgba(88, 60, 43, 0.22)",
+          boxShadow: "0 18px 32px rgba(88, 60, 43, 0.12)",
+          position: "relative",
+          overflow: "hidden",
+          zIndex: 1,
+        }}
       >
+        <div
+          style={{
+            position: "absolute",
+            right: -40,
+            top: -40,
+            width: 180,
+            height: 180,
+            borderRadius: "50%",
+            background: `${accent}12`,
+            filter: "blur(8px)",
+          }}
+        />
+        <div
+          style={{
+            color: accent,
+            fontSize: 11,
+            fontWeight: "900",
+            letterSpacing: 1.5,
+            textTransform: "uppercase",
+            marginBottom: 12,
+            position: "relative",
+          }}
+        >
+          Toan canh tinh huong
+        </div>
         <p
           style={{
             color: "var(--foreground)",
-            lineHeight: 1.8,
+            lineHeight: 1.9,
             fontSize: 15,
             margin: 0,
+            position: "relative",
           }}
         >
           {scene.narrative}
@@ -2067,21 +3059,47 @@ function SceneScreen({
         <div
           className="slide-left"
           style={{
-            background: "var(--muted)",
-            border: "1px solid var(--border)",
-            padding: 18,
+            background:
+              "linear-gradient(135deg, rgba(255,255,255,0.62), rgba(255,255,255,0.38))",
+            border: "1px solid rgba(88, 60, 43, 0.22)",
+            padding: 20,
             marginBottom: 20,
+            borderRadius: 18,
+            boxShadow: "0 14px 28px rgba(88, 60, 43, 0.08)",
+            position: "relative",
+            zIndex: 1,
           }}
         >
-          <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-            <div style={{ textAlign: "center", flexShrink: 0 }}>
-              <div style={{ fontSize: 40 }}>{scene.npc.emoji}</div>
+          <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+            <div
+              style={{
+                textAlign: "center",
+                flexShrink: 0,
+                width: 92,
+              }}
+            >
               <div
                 style={{
-                  color: "var(--primary)",
+                  width: 64,
+                  height: 64,
+                  margin: "0 auto 8px",
+                  borderRadius: "50%",
+                  display: "grid",
+                  placeItems: "center",
+                  background: `${accent}16`,
+                  border: `1px solid ${accent}44`,
+                  fontSize: 34,
+                }}
+              >
+                {scene.npc.emoji}
+              </div>
+              <div
+                style={{
+                  color: accent,
                   fontSize: 11,
                   marginTop: 4,
                   fontWeight: "900",
+                  textTransform: "uppercase",
                 }}
               >
                 {scene.npc.name}
@@ -2097,7 +3115,15 @@ function SceneScreen({
                 {scene.npc.role}
               </div>
             </div>
-            <div style={{ flex: 1, padding: 14 }}>
+            <div
+              style={{
+                flex: 1,
+                padding: 16,
+                background: "rgba(255,255,255,0.38)",
+                borderRadius: 14,
+                border: "1px solid rgba(88, 60, 43, 0.14)",
+              }}
+            >
               <p
                 style={{
                   color: "var(--foreground)",
@@ -2105,7 +3131,7 @@ function SceneScreen({
                   fontSize: 14,
                   margin: 0,
                   fontStyle: "italic",
-                  borderLeft: "3px solid var(--primary)",
+                  borderLeft: `3px solid ${accent}`,
                   paddingLeft: 14,
                 }}
               >
@@ -2121,10 +3147,13 @@ function SceneScreen({
         <div className="fade-in">
           <div
             style={{
-              border: "1px solid var(--primary)",
-              background: "var(--muted)",
-              padding: 18,
+              border: `1px solid ${accent}`,
+              background:
+                "linear-gradient(135deg, rgba(255,255,255,0.72), rgba(255,255,255,0.5))",
+              padding: 20,
               marginBottom: 18,
+              borderRadius: 16,
+              boxShadow: "0 12px 24px rgba(88, 60, 43, 0.08)",
             }}
           >
             <p
@@ -2155,12 +3184,14 @@ function SceneScreen({
                   <div
                     key={key}
                     style={{
-                      border: "1px solid var(--primary)",
-                      padding: "4px 14px",
-                      color: "var(--primary)",
+                      border: `1px solid ${accent}`,
+                      padding: "6px 14px",
+                      color: accent,
                       fontSize: 11,
                       fontWeight: "900",
                       textTransform: "uppercase",
+                      borderRadius: 999,
+                      background: `${accent}12`,
                     }}
                   >
                     {val > 0 ? "+" : ""}
@@ -2193,16 +3224,23 @@ function SceneScreen({
           <p
             style={{
               color: "var(--foreground)",
-              opacity: 0.5,
-              fontSize: 11,
-              marginBottom: 12,
+              opacity: 0.65,
+              fontSize: 12,
+              marginBottom: 14,
               fontWeight: "bold",
               textTransform: "uppercase",
+              letterSpacing: 1,
             }}
           >
-            ▶ CHỌN HÀNH ĐỘNG:
+            ▶ Chon cach hanh dong trong bien co:
           </p>
-          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: 14,
+            }}
+          >
             {scene.choices.map((choice, i) => {
               const isLocked =
                 choice.requirement &&
@@ -2215,48 +3253,83 @@ function SceneScreen({
                   key={i}
                   onClick={() => !isLocked && onChoice(choice)}
                   style={{
-                    padding: 18,
+                    padding: 20,
                     border: isLocked
-                      ? "1px solid var(--border)"
-                      : `1px solid var(--primary)`,
-                    background: isLocked ? "var(--muted)" : "transparent",
+                      ? "1px solid rgba(88, 60, 43, 0.12)"
+                      : `1px solid ${accent}`,
+                    background: isLocked
+                      ? "linear-gradient(180deg, rgba(140,130,120,0.14), rgba(255,255,255,0.34))"
+                      : "linear-gradient(180deg, rgba(255,255,255,0.78), rgba(255,255,255,0.54))",
                     cursor: isLocked ? "not-allowed" : "pointer",
-                    opacity: isLocked ? 0.5 : 1,
+                    opacity: isLocked ? 0.6 : 1,
                     transition: "all 0.3s",
                     position: "relative",
+                    borderRadius: 18,
+                    boxShadow: isLocked
+                      ? "none"
+                      : "0 18px 28px rgba(88, 60, 43, 0.10)",
+                    minHeight: 170,
+                    overflow: "hidden",
                   }}
                 >
+                  <div
+                    style={{
+                      position: "absolute",
+                      right: -30,
+                      top: -30,
+                      width: 120,
+                      height: 120,
+                      borderRadius: "50%",
+                      background: isLocked ? "rgba(120,120,120,0.10)" : `${accent}10`,
+                    }}
+                  />
                   <div
                     style={{
                       display: "flex",
                       gap: 12,
                       alignItems: "flex-start",
+                      position: "relative",
+                      zIndex: 1,
                     }}
                   >
                     <div
                       style={{
-                        width: 28,
-                        height: 28,
+                        width: 34,
+                        height: 34,
                         border: isLocked
-                          ? "1px solid var(--border)"
-                          : `1px solid var(--primary)`,
+                          ? "1px solid rgba(88, 60, 43, 0.18)"
+                          : `1px solid ${accent}`,
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         flexShrink: 0,
-                        color: "var(--primary)",
+                        color: accent,
                         fontSize: 13,
                         fontWeight: "900",
+                        borderRadius: "50%",
+                        background: isLocked ? "rgba(255,255,255,0.35)" : `${accent}12`,
                       }}
                     >
                       {isLocked ? "🔒" : i + 1}
                     </div>
                     <div style={{ flex: 1 }}>
+                      <div
+                        style={{
+                          color: accent,
+                          fontSize: 10,
+                          fontWeight: "900",
+                          letterSpacing: 1.2,
+                          textTransform: "uppercase",
+                          marginBottom: 8,
+                        }}
+                      >
+                        {isLocked ? "Lua chon tam thoi khoa" : "Nuoc di cua ban"}
+                      </div>
                       <p
                         style={{
                           color: "var(--foreground)",
                           fontSize: 14,
-                          lineHeight: 1.6,
+                          lineHeight: 1.7,
                           margin: 0,
                           fontWeight: "bold",
                         }}
@@ -2274,12 +3347,14 @@ function SceneScreen({
                         {choice.conceptTag && (
                           <span
                             style={{
-                              border: "1px solid var(--primary)",
+                              border: `1px solid ${accent}`,
                               padding: "2px 10px",
-                              color: "var(--primary)",
+                              color: accent,
                               fontSize: 10,
                               fontWeight: "900",
                               textTransform: "uppercase",
+                              borderRadius: 999,
+                              background: `${accent}10`,
                             }}
                           >
                             {choice.conceptTag}
@@ -2288,12 +3363,13 @@ function SceneScreen({
                         {hasBonus && !isLocked && (
                           <span
                             style={{
-                              background: "var(--primary)",
+                              background: accent,
                               padding: "2px 10px",
                               color: "var(--background)",
                               fontSize: 10,
                               fontWeight: "900",
                               textTransform: "uppercase",
+                              borderRadius: 999,
                             }}
                           >
                             THẾ MẠNH{" "}
@@ -2303,11 +3379,13 @@ function SceneScreen({
                         {isLocked && choice.requirement && (
                           <span
                             style={{
-                              border: "1px solid var(--primary)",
+                              border: `1px solid ${accent}`,
                               padding: "2px 10px",
-                              color: "var(--primary)",
+                              color: accent,
                               fontSize: 10,
                               fontWeight: "900",
+                              borderRadius: 999,
+                              background: `${accent}10`,
                             }}
                           >
                             YÊU CẦU: {choice.requirement.stat.toUpperCase()}{" "}
@@ -3004,169 +4082,611 @@ function EndingScreen({
   onRestart: () => void;
   onHome: () => void;
 }) {
+  const [activeTab, setActiveTab] = useState<
+    "summary" | "stats" | "achievements"
+  >("summary");
+
+  const unlockedAchievements = character.achievements
+    .map((id) => Object.values(ACHIEVEMENTS).find((a) => a.id === id))
+    .filter(Boolean);
+
+  const highlightStats = ending.highlightStats as Array<keyof Stats>;
+
   return (
     <div
-      className="industrial-container"
       style={{
-        maxWidth: 850,
-        margin: "60px auto",
-        animation: "fadeIn 0.8s ease-out",
+        minHeight: "100vh",
+        background:
+          "linear-gradient(135deg, var(--background) 0%, rgba(88, 86, 214, 0.08) 100%)",
+        padding: "40px 20px",
+        overflow: "auto",
       }}
     >
-      <div
-        className="glass-industrial"
-        style={{
-          padding: "60px",
-          border: "1px solid var(--primary)",
-          position: "relative",
-          overflow: "hidden",
-          boxShadow: "0 0 50px rgba(165, 28, 48, 0.1)",
-        }}
-      >
-        {/* Decorative corner */}
-        <div
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
           style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            width: 100,
-            height: 100,
-            background:
-              "linear-gradient(135deg, transparent 50%, var(--primary) 50%)",
-            opacity: 0.1,
+            textAlign: "center",
+            marginBottom: 50,
           }}
-        />
-
-        <div style={{ textAlign: "center", marginBottom: 40 }}>
-          <div
+        >
+          <motion.div
+            animate={{ scale: [1, 1.1, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
             style={{
-              fontSize: 80,
-              marginBottom: 20,
-              filter: "drop-shadow(0 0 15px rgba(165, 28, 48, 0.3))",
+              fontSize: 120,
+              marginBottom: 30,
+              filter: "drop-shadow(0 0 20px rgba(88, 86, 214, 0.3))",
             }}
           >
             {ending.emoji}
-          </div>
+          </motion.div>
+
           <div
             style={{
               color: "var(--primary)",
               fontWeight: "900",
               fontSize: 12,
-              letterSpacing: 5,
-              marginBottom: 10,
+              letterSpacing: 3,
+              marginBottom: 15,
+              textTransform: "uppercase",
             }}
           >
-            KẾT THÚC CHƯƠNG TRÌNH
+            ✦ Chương 6: Kết Thúc ✦
           </div>
-          <h2
+
+          <h1
             style={{
-              fontSize: 42,
-              color: "#fff",
+              fontSize: 64,
               fontFamily: "var(--font-slab)",
-              margin: 0,
+              margin: "0 0 20px 0",
+              color: "var(--foreground)",
+              fontWeight: "900",
               textTransform: "uppercase",
-              letterSpacing: 2,
+              lineHeight: 1.2,
             }}
           >
             {ending.title}
-          </h2>
-          <div
-            style={{
-              height: 4,
-              width: 60,
-              background: "var(--primary)",
-              margin: "20px auto 0",
-            }}
-          />
-        </div>
+          </h1>
 
-        <div
-          style={{
-            background: "rgba(255,255,255,0.03)",
-            padding: 30,
-            borderRadius: "4px",
-            borderLeft: "4px solid var(--primary)",
-            marginBottom: 30,
-          }}
-        >
-          <p
-            style={{
-              fontSize: 18,
-              lineHeight: 1.8,
-              color: "rgba(255,255,255,0.9)",
-              margin: 0,
-              fontStyle: "italic",
-            }}
-          >
-            "{ending.narrative}"
-          </p>
-        </div>
-
-        <div
-          className="industrial-card"
-          style={{
-            padding: 30,
-            background: "rgba(165, 28, 48, 0.05)",
-            border: "1px solid rgba(165, 28, 48, 0.2)",
-            marginBottom: 40,
-          }}
-        >
           <div
             style={{
               display: "flex",
+              gap: 8,
+              justifyContent: "center",
               alignItems: "center",
-              gap: 10,
-              marginBottom: 15,
+              fontSize: 14,
+              color: "var(--foreground)",
+              opacity: 0.7,
             }}
           >
-            <span style={{ fontSize: 20 }}>📚</span>
-            <span
+            <span>👤 {character.name}</span>
+            <span>•</span>
+            <span>📅 Năm {ending.year}</span>
+            <span>•</span>
+            <span>📊 {character.history.length} quyết định</span>
+          </div>
+        </motion.div>
+
+        {/* Tab Navigation */}
+        <div
+          style={{
+            display: "flex",
+            gap: 12,
+            marginBottom: 30,
+            justifyContent: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          {[
+            { id: "summary" as const, label: "Kết Thúc", icon: "📖" },
+            { id: "stats" as const, label: "Thống Kê", icon: "📊" },
+            {
+              id: "achievements" as const,
+              label: `Thành Tích (${unlockedAchievements.length})`,
+              icon: "🏆",
+            },
+          ].map((tab) => (
+            <motion.button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               style={{
-                color: "var(--primary)",
+                padding: "12px 20px",
+                background:
+                  activeTab === tab.id
+                    ? "linear-gradient(135deg, var(--primary), rgba(88, 86, 214, 0.8))"
+                    : "rgba(88, 86, 214, 0.1)",
+                border:
+                  activeTab === tab.id
+                    ? "1px solid var(--primary)"
+                    : "1px solid rgba(88, 86, 214, 0.2)",
+                color: activeTab === tab.id ? "white" : "var(--foreground)",
+                fontSize: 13,
                 fontWeight: "900",
-                fontSize: 11,
-                letterSpacing: 2,
+                borderRadius: 6,
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                textTransform: "uppercase",
+                letterSpacing: 1,
               }}
             >
-              BÀI HỌC LÝ LUẬN MÁC-XÍT
-            </span>
-          </div>
-          <p
-            style={{
-              fontSize: 15,
-              lineHeight: 1.7,
-              color: "rgba(255,255,255,0.7)",
-              margin: 0,
-            }}
-          >
-            {ending.marxLesson}
-          </p>
+              {tab.icon} {tab.label}
+            </motion.button>
+          ))}
         </div>
 
+        {/* Content */}
         <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1.5fr 1fr",
+            gap: 30,
+            marginBottom: 40,
+          }}
         >
-          <button
-            onClick={onRestart}
-            className="btn-primary"
+          {/* Main Content */}
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {activeTab === "summary" && (
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 24 }}
+              >
+                {/* Narrative */}
+                <div
+                  style={{
+                    background: "rgba(88, 86, 214, 0.08)",
+                    padding: 32,
+                    borderRadius: 12,
+                    borderLeft: "4px solid var(--primary)",
+                    backdropFilter: "blur(10px)",
+                  }}
+                >
+                  <h3
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "900",
+                      color: "var(--primary)",
+                      letterSpacing: 1,
+                      margin: "0 0 16px 0",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    Hành Trình Kết Thúc
+                  </h3>
+                  <p
+                    style={{
+                      fontSize: 16,
+                      lineHeight: 1.8,
+                      color: "var(--foreground)",
+                      margin: 0,
+                      fontWeight: 500,
+                    }}
+                  >
+                    "{ending.narrative}"
+                  </p>
+                </div>
+
+                {/* Marx Lesson */}
+                <div
+                  style={{
+                    background:
+                      "linear-gradient(135deg, rgba(165, 28, 48, 0.08), rgba(88, 86, 214, 0.08))",
+                    padding: 32,
+                    borderRadius: 12,
+                    border: "1px solid rgba(88, 86, 214, 0.2)",
+                    backdropFilter: "blur(10px)",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      marginBottom: 16,
+                    }}
+                  >
+                    <span style={{ fontSize: 24 }}>📚</span>
+                    <h3
+                      style={{
+                        fontSize: 12,
+                        fontWeight: "900",
+                        color: "var(--primary)",
+                        letterSpacing: 1,
+                        margin: 0,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      Bài Học Mác-Xít
+                    </h3>
+                  </div>
+                  <p
+                    style={{
+                      fontSize: 15,
+                      lineHeight: 1.7,
+                      color: "var(--foreground)",
+                      margin: 0,
+                      opacity: 0.85,
+                    }}
+                  >
+                    {ending.marxLesson}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "stats" && (
+              <div
+                style={{
+                  background: "rgba(88, 86, 214, 0.08)",
+                  padding: 32,
+                  borderRadius: 12,
+                  border: "1px solid rgba(88, 86, 214, 0.2)",
+                  backdropFilter: "blur(10px)",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 20,
+                }}
+              >
+                <h3
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "900",
+                    color: "var(--primary)",
+                    letterSpacing: 1,
+                    margin: 0,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Chỉ Số Cuối Cùng
+                </h3>
+                {Object.entries(character.stats).map(([statKey, value], i) => {
+                  const isHighlight = highlightStats.includes(
+                    statKey as keyof Stats,
+                  );
+                  return (
+                    <motion.div
+                      key={statKey}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginBottom: 8,
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: 13,
+                            fontWeight: "900",
+                            textTransform: "capitalize",
+                            color: isHighlight
+                              ? "var(--primary)"
+                              : "var(--foreground)",
+                          }}
+                        >
+                          {statKey === "knowledge"
+                            ? "🧠 Tri Thức"
+                            : statKey === "willpower"
+                              ? "💪 Ý Chí"
+                              : statKey === "wealth"
+                                ? "💰 Tài Phú"
+                                : "🤝 Xã Hội"}
+                          {isHighlight && " ⭐"}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 13,
+                            fontWeight: "900",
+                            color: "var(--primary)",
+                          }}
+                        >
+                          {value}/100
+                        </span>
+                      </div>
+                      <div
+                        style={{
+                          height: 8,
+                          background: "rgba(88, 86, 214, 0.1)",
+                          borderRadius: 4,
+                          overflow: "hidden",
+                        }}
+                      >
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${value}%` }}
+                          transition={{ duration: 0.8, delay: i * 0.1 }}
+                          style={{
+                            height: "100%",
+                            background: isHighlight
+                              ? "linear-gradient(90deg, var(--primary), rgba(88, 86, 214, 0.7))"
+                              : "linear-gradient(90deg, rgba(88, 86, 214, 0.5), rgba(88, 86, 214, 0.3))",
+                          }}
+                        />
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+
+            {activeTab === "achievements" && (
+              <div
+                style={{
+                  background: "rgba(88, 86, 214, 0.08)",
+                  padding: 32,
+                  borderRadius: 12,
+                  border: "1px solid rgba(88, 86, 214, 0.2)",
+                  backdropFilter: "blur(10px)",
+                }}
+              >
+                <h3
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "900",
+                    color: "var(--primary)",
+                    letterSpacing: 1,
+                    margin: "0 0 20px 0",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Thành Tích Mở Khóa
+                </h3>
+                {unlockedAchievements.length === 0 ? (
+                  <p
+                    style={{
+                      textAlign: "center",
+                      opacity: 0.6,
+                      margin: 0,
+                      padding: 20,
+                    }}
+                  >
+                    Không có thành tích nào được mở khóa
+                  </p>
+                ) : (
+                  <div
+                    style={{
+                      display: "grid",
+                      gridTemplateColumns:
+                        "repeat(auto-fill, minmax(120px, 1fr))",
+                      gap: 12,
+                    }}
+                  >
+                    {unlockedAchievements.map((ach, i) => (
+                      <motion.div
+                        key={ach?.id}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: i * 0.05 }}
+                        whileHover={{
+                          y: -4,
+                          boxShadow: "0 8px 16px rgba(88, 86, 214, 0.2)",
+                        }}
+                        style={{
+                          background:
+                            ach?.rarity === "legendary"
+                              ? "linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(165, 28, 48, 0.2))"
+                              : ach?.rarity === "epic"
+                                ? "rgba(138, 43, 226, 0.2)"
+                                : ach?.rarity === "rare"
+                                  ? "rgba(30, 144, 255, 0.2)"
+                                  : "rgba(88, 86, 214, 0.1)",
+                          border:
+                            ach?.rarity === "legendary"
+                              ? "1px solid rgba(255, 215, 0, 0.5)"
+                              : ach?.rarity === "epic"
+                                ? "1px solid rgba(138, 43, 226, 0.5)"
+                                : ach?.rarity === "rare"
+                                  ? "1px solid rgba(30, 144, 255, 0.5)"
+                                  : "1px solid rgba(88, 86, 214, 0.3)",
+                          padding: 12,
+                          borderRadius: 8,
+                          textAlign: "center",
+                          transition: "all 0.3s ease",
+                          cursor: "default",
+                        }}
+                      >
+                        <div style={{ fontSize: 28, marginBottom: 4 }}>
+                          {ach?.emoji}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 11,
+                            fontWeight: "900",
+                            color: "var(--foreground)",
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          {ach?.title}
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </motion.div>
+
+          {/* Sidebar - Quick Stats */}
+          <div
             style={{
-              padding: 20,
-              fontSize: 15,
-              fontWeight: "900",
-              background: "transparent",
-              border: "1px solid var(--primary)",
-              color: "var(--primary)",
+              display: "flex",
+              flexDirection: "column",
+              gap: 20,
             }}
           >
-            THỬ THÁCH LẠI ↺
-          </button>
-          <button
-            onClick={onHome}
-            className="btn-primary"
-            style={{ padding: 20, fontSize: 15, fontWeight: "900" }}
+            {/* Character Card */}
+            <div
+              style={{
+                background:
+                  "linear-gradient(135deg, rgba(88, 86, 214, 0.15), rgba(88, 86, 214, 0.05))",
+                padding: 24,
+                borderRadius: 12,
+                border: "1px solid rgba(88, 86, 214, 0.3)",
+                backdropFilter: "blur(10px)",
+                textAlign: "center",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 48,
+                  marginBottom: 12,
+                }}
+              >
+                {character.emoji}
+              </div>
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: "900",
+                  color: "var(--foreground)",
+                  marginBottom: 4,
+                }}
+              >
+                {character.name}
+              </div>
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "var(--primary)",
+                  fontWeight: "900",
+                  textTransform: "uppercase",
+                  letterSpacing: 1,
+                }}
+              >
+                {character.classLabel}
+              </div>
+            </div>
+
+            {/* Summary Stats */}
+            <div
+              style={{
+                background: "rgba(88, 86, 214, 0.08)",
+                padding: 20,
+                borderRadius: 12,
+                border: "1px solid rgba(88, 86, 214, 0.2)",
+                backdropFilter: "blur(10px)",
+              }}
+            >
+              <h4
+                style={{
+                  fontSize: 11,
+                  fontWeight: "900",
+                  color: "var(--primary)",
+                  margin: "0 0 12px 0",
+                  letterSpacing: 1,
+                  textTransform: "uppercase",
+                }}
+              >
+                Tóm Tắt
+              </h4>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 10,
+                  fontSize: 13,
+                  color: "var(--foreground)",
+                }}
+              >
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <span>💎 Gems:</span>
+                  <span style={{ fontWeight: "900" }}>
+                    {character.gems.length}
+                  </span>
+                </div>
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <span>📝 Quyết Định:</span>
+                  <span style={{ fontWeight: "900" }}>
+                    {character.history.length}
+                  </span>
+                </div>
+                <div
+                  style={{ display: "flex", justifyContent: "space-between" }}
+                >
+                  <span>🏆 Thành Tích:</span>
+                  <span style={{ fontWeight: "900" }}>
+                    {unlockedAchievements.length}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div
+          style={{
+            display: "flex",
+            gap: 16,
+            justifyContent: "center",
+            flexWrap: "wrap",
+          }}
+        >
+          <motion.button
+            onClick={onRestart}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={{
+              padding: "14px 32px",
+              background: "transparent",
+              border: "1.5px solid rgba(88, 86, 214, 0.5)",
+              color: "var(--foreground)",
+              fontSize: 14,
+              fontWeight: "900",
+              borderRadius: 6,
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              textTransform: "uppercase",
+              letterSpacing: 1,
+            }}
+            onMouseEnter={(e: any) => {
+              e.currentTarget.style.background = "rgba(88, 86, 214, 0.1)";
+              e.currentTarget.style.borderColor = "rgba(88, 86, 214, 0.7)";
+            }}
+            onMouseLeave={(e: any) => {
+              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.borderColor = "rgba(88, 86, 214, 0.5)";
+            }}
           >
-            QUAY VỀ TRANG CHỦ ➔
-          </button>
+            ↺ Thử Thách Lại
+          </motion.button>
+          <motion.button
+            onClick={onHome}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            style={{
+              padding: "14px 32px",
+              background:
+                "linear-gradient(135deg, var(--primary), rgba(88, 86, 214, 0.8))",
+              color: "white",
+              fontSize: 14,
+              fontWeight: "900",
+              borderRadius: 6,
+              border: "none",
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              textTransform: "uppercase",
+              letterSpacing: 1,
+            }}
+          >
+            ➔ Quay Về Trang Chủ
+          </motion.button>
         </div>
       </div>
     </div>
@@ -5372,516 +6892,627 @@ function AIUsageScreen({
   character: Character | null;
   onStart: () => void;
 }) {
-  if (!character) return null;
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "process" | "theory" | "transparency"
+  >("overview");
 
-  return (
-    <motion.div
-      className="industrial-container"
-      style={{
-        maxWidth: 1100,
-        margin: "0 auto",
-        minHeight: "calc(100vh - 140px)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "20px",
-      }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.6, ease: "easeOut" }}
-    >
+  const tabs = [
+    { id: "overview", label: "TỔNG QUAN", icon: "◈" },
+    { id: "process", label: "QUY TRÌNH", icon: "▣" },
+    { id: "theory", label: "HỌC THUẬT", icon: "△" },
+    { id: "transparency", label: "CAM KẾT", icon: "✦" },
+  ] as const;
+
+  const overviewCards = [
+    {
+      name: "Lên ý tưởng & xây khung",
+      role: "Bản nháp khởi tạo",
+      desc: "AI hỗ trợ gợi ý cấu trúc màn chơi, nhịp kể chuyện, dạng câu hỏi phù hợp với chủ đề lao động trong kỷ nguyên AI.",
+      color: "#7dd3fc",
+      icon: "01",
+    },
+    {
+      name: "Biên tập nội dung",
+      role: "Ngôn ngữ & bố cục",
+      desc: "AI hỗ trợ soạn nháp lời dẫn, câu mô tả. Nhóm chỉnh sửa để đúng tinh thần học phần, gọn hơn và ít khoa trương.",
+      color: "#fca5a5",
+      icon: "02",
+    },
+    {
+      name: "Hỗ trợ kỹ thuật",
+      role: "React & UI",
+      desc: "AI được dùng để đề xuất component, animation, state. Nhóm tích hợp, chọn giải pháp cuối và sửa lỗi.",
+      color: "#86efac",
+      icon: "03",
+    },
+    {
+      name: "Rà soát hoàn thiện",
+      role: "Kiểm tra nhiều vòng",
+      desc: "AI hỗ trợ phát hiện diễn đạt dài, ý trùng. Nhóm tự đối chiếu, chơi thử và chốt phiên bản cuối.",
+      color: "#fcd34d",
+      icon: "04",
+    },
+  ];
+
+  const processSteps = [
+    {
+      id: "01",
+      title: "Chốt mục tiêu học tập trước khi dùng AI",
+      text: "Nhóm xác định rõ từng module phải giúp người học hiểu nội dung gì (lao động, giá trị, thặng dư...) trước khi dùng AI.",
+      color: "#7dd3fc",
+    },
+    {
+      id: "02",
+      title: "Dùng AI để sinh gợi ý ban đầu",
+      text: "Nhóm dùng AI cho brainstorming, dàn ý, diễn đạt nháp. Mọi đầu ra được xem là bản nháp, không dùng nguyên trạng.",
+      color: "#fca5a5",
+    },
+    {
+      id: "03",
+      title: "Đối chiếu với lý thuyết Mác & logic game",
+      text: "Nhóm đọc lại nội dung AI, đối chiếu với bài giảng để loại bỏ suy diễn sai, rườm rà hoặc thiếu chính xác.",
+      color: "#86efac",
+    },
+    {
+      id: "04",
+      title: "Viết lại & tích hợp thủ công",
+      text: "Những phần được giữ lại đều được nhóm viết lại, rút gọn, đổi giọng và đưa vào bằng thao tác lập trình thủ công.",
+      color: "#fcd34d",
+    },
+    {
+      id: "05",
+      title: "Kiểm thử & chịu trách nhiệm",
+      text: "Phiên bản cuối được nhóm tự test về logic, trải nghiệm và độ đúng học thuật. Nhóm chịu trách nhiệm hoàn toàn.",
+      color: "#c4b5fd",
+    },
+  ];
+
+  const theoryCards = [
+    {
+      title: "AI là công cụ hỗ trợ, không phải sáng tạo",
+      content:
+        "Trong dự án này, AI không tự xác lập mục tiêu giáo dục cũng không tự quyết định luận điểm. Nó chỉ hỗ trợ tăng tốc ở giai đoạn bản nháp.",
+      color: "#7dd3fc",
+      tag: "SUPPORT_TOOL",
+    },
+    {
+      title: "Giá trị nằm ở khâu chọn lọc & biên tập",
+      content:
+        "Điểm quan trọng không phải AI tạo bao nhiêu chữ, mà là nhóm đã đọc, bác bỏ, chỉnh sửa và chuyển hóa gợi ý thành sản phẩm phù hợp.",
+      color: "#fca5a5",
+      tag: "HUMAN_JUDGMENT",
+    },
+    {
+      title: "AI không miễn trừ trách nhiệm",
+      content:
+        "AI giúp tiết kiệm thời gian viết nháp, nhưng nếu không kiểm chứng thì dễ tạo nội dung sai, thiếu nguồn hoặc diễn giải quá mức.",
+      color: "#86efac",
+      tag: "CRITICAL_USE",
+    },
+    {
+      title: "Minh bạch là trách nhiệm của nhóm",
+      content:
+        "Phần này giúp nói rõ AI đã được dùng ở mức nào, quy trình kiểm soát như thế nào và đâu là đóng góp thực tế của nhóm.",
+      color: "#fcd34d",
+      tag: "DISCLOSURE",
+    },
+  ];
+
+  const transparencyPoints = [
+    "AI được dùng để gợi ý, phác thảo và hỗ trợ kỹ thuật, không thay thế toàn bộ tư duy học thuật của nhóm.",
+    "Mọi nội dung về lý luận Mác, lao động, giá trị, thặng dư đều được nhóm đọc lại, chỉnh sửa và xác nhận.",
+    "Kết quả từ AI không được xem là nguồn trích dẫn học thuật, chỉ là công cụ hỗ trợ xây bản nháp.",
+    "Mọi quyết định cuối cùng về nội dung, hình thức và mã nguồn đều do nhóm sinh viên chịu trách nhiệm.",
+  ];
+
+  const renderSectionHeader = (
+    code: string,
+    title: string,
+    description: string,
+  ) => (
+    <div style={{ marginBottom: 34 }}>
       <div
-        className="industrial-card"
         style={{
-          maxWidth: 900,
-          width: "100%",
-          padding: "60px 52px",
-          background:
-            "linear-gradient(135deg, var(--card) 0%, rgba(255,255,255,0.95) 100%)",
-          boxShadow: "8px 8px 0 var(--border), 0 20px 60px rgba(0,0,0,0.15)",
+          display: "inline-block",
+          background: "var(--primary)",
+          color: "white",
+          padding: "6px 14px",
+          fontSize: 10,
+          fontWeight: "900",
+          marginBottom: 16,
+          borderRadius: 2,
+          letterSpacing: 1,
         }}
       >
-        {/* Header */}
-        <motion.div
-          style={{ marginBottom: 40 }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-        >
-          <div
-            style={{
-              display: "inline-block",
-              background: "var(--primary)",
-              color: "white",
-              padding: "4px 12px",
-              fontSize: 10,
-              fontWeight: "900",
-              marginBottom: 20,
-              borderRadius: 2,
-            }}
-          >
-            APPENDIX · AI USAGE
-          </div>
-          <h2
-            style={{
-              fontSize: 42,
-              fontFamily: "var(--font-slab)",
-              margin: 0,
-              marginBottom: 12,
-              color: "var(--primary)",
-              textTransform: "uppercase",
-              lineHeight: 1.1,
-            }}
-          >
-            AI & Automation trong DTG
-          </h2>
-          <p
-            style={{
-              fontSize: 18,
-              color: "var(--primary)",
-              opacity: 0.7,
-              margin: 0,
-              fontWeight: 500,
-            }}
-          >
-            Dialectical AI RPG - Trò chơi nhập vai duy tân học Mác và Chuyển đổi
-            Số
-          </p>
-        </motion.div>
+        {code}
+      </div>
+      <h2
+        style={{
+          fontSize: 32,
+          fontWeight: "900",
+          margin: "0 0 12px 0",
+          color: "var(--primary)",
+          textTransform: "uppercase",
+          fontFamily: "var(--font-slab)",
+        }}
+      >
+        {title}
+      </h2>
+      <p
+        style={{
+          fontSize: 14,
+          color: "var(--foreground)",
+          opacity: 0.7,
+          margin: 0,
+        }}
+      >
+        {description}
+      </p>
+    </div>
+  );
 
-        {/* Content Grid */}
-        <motion.div
+  return (
+    <div
+      className="industrial-container"
+      style={{
+        maxWidth: 1150,
+        margin: "0 auto",
+        animation: "fadeIn 0.5s ease-out",
+      }}
+    >
+      <div
+        className="glass-industrial"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          minHeight: 720,
+          border: "1px solid var(--primary)",
+          overflow: "hidden",
+          padding: 0,
+          boxShadow:
+            "0 0 40px rgba(0,0,0,0.5), inset 0 0 100px rgba(165, 28, 48, 0.05)",
+        }}
+      >
+        {/* Sidebar Navigation */}
+        <div
           style={{
-            background:
-              "linear-gradient(135deg, rgba(165, 28, 48, 0.06) 0%, rgba(213,200,178,0.3) 100%)",
-            padding: "28px",
-            borderRadius: 12,
-            borderLeft: "4px solid var(--primary)",
-            backdropFilter: "blur(10px)",
-            marginBottom: 32,
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-        >
-          <h3
-            style={{
-              fontSize: 16,
-              fontWeight: 900,
-              color: "var(--primary)",
-              marginTop: 0,
-              marginBottom: 12,
-              textTransform: "uppercase",
-              letterSpacing: 1,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <span style={{ fontSize: 20 }}>🤖</span> Robot & Tự động hóa
-          </h3>
-          <p
-            style={{
-              fontSize: 15,
-              lineHeight: 1.8,
-              color: "var(--foreground)",
-              opacity: 0.85,
-            }}
-          >
-            Robot là <strong>Tư bản Bất Biến</strong> – chỉ chuyển dần giá trị
-            của chính nó vào sản phẩm qua khấu hao. Vai trò thực sự của nó là
-            <strong> tăng năng suất lao động xã hội</strong>, giúp rút ngắn thời
-            gian tất yếu và kéo dài thời gian thặng dư.
-          </p>
-        </motion.div>
-
-        {/* Content Grid */}
-        <motion.div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 32,
-            marginBottom: 32,
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
-        >
-          {/* Column 1: Tech Stack */}
-          <div>
-            <h3
-              style={{
-                fontSize: 16,
-                fontWeight: 900,
-                color: "var(--primary)",
-                marginBottom: 12,
-                textTransform: "uppercase",
-                letterSpacing: 1,
-              }}
-            >
-              🤖 Robot & Tự động hóa
-            </h3>
-            <p
-              style={{
-                fontSize: 15,
-                lineHeight: 1.8,
-                color: "var(--foreground)",
-                opacity: 0.85,
-                margin: "0 0 12px 0",
-              }}
-            >
-              Robot là <strong>Tư bản Bất Biến</strong> – chỉ chuyển dần giá trị
-              của chính nó vào sản phẩm. Vai trò:{" "}
-              <strong>tăng năng suất</strong>, rút ngắn thời gian tất yếu, kéo
-              dài thặng dư.
-            </p>
-            <p
-              style={{
-                fontSize: 14,
-                lineHeight: 1.7,
-                color: "var(--foreground)",
-                opacity: 0.8,
-                margin: 0,
-              }}
-            >
-              <strong>Ví dụ:</strong> Máy may có thể sản xuất một chiếc áo sơ mi
-              trong 5 phút (thay vì 15 phút thủ công). Nhưng ngay cả với AI tốt
-              nhất, máy vẫn chỉ chuyển "giá trị cũ" của chính nó vào áo, không
-              tạo giá trị mới. Chỉ con người mới tạo giá trị mới!
-            </p>
-          </div>
-
-          {/* Column 2: Game Features */}
-          <div>
-            <h3
-              style={{
-                fontSize: 16,
-                fontWeight: 900,
-                color: "var(--primary)",
-                marginBottom: 12,
-                textTransform: "uppercase",
-                letterSpacing: 1,
-              }}
-            >
-              🧠 Lao động Sống & Tri tuệ
-            </h3>
-            <p
-              style={{
-                fontSize: 15,
-                lineHeight: 1.8,
-                color: "var(--foreground)",
-                opacity: 0.85,
-                margin: "0 0 12px 0",
-              }}
-            >
-              Chỉ <strong>Lao động Sống</strong> của con người mới tạo ra
-              <strong> Giá trị Mới</strong>. Những tầm lớp mà AI phụ thuộc vào:
-            </p>
-            <ul
-              style={{
-                margin: 0,
-                paddingLeft: 20,
-                fontSize: 14,
-                lineHeight: 1.8,
-                color: "var(--foreground)",
-                opacity: 0.85,
-              }}
-            >
-              <li>
-                <strong>Thiết kế hệ thống:</strong> Kỹ sư quyết định cấu trúc
-              </li>
-              <li>
-                <strong>Ra quyết định chiến lược:</strong> Quản trị viên điều
-                hành
-              </li>
-              <li>
-                <strong>Sáng tạo sản phẩm:</strong> Nhà thiết kế phát minh mới
-              </li>
-              <li>
-                <strong>Kiểm soát & điều chỉnh:</strong> Con người giám sát AI
-              </li>
-            </ul>
-          </div>
-        </motion.div>
-
-        {/* Learning Content */}
-        <motion.div
-          style={{
-            background: "rgba(165,28,48,0.08)",
-            padding: "24px",
-            borderRadius: 12,
-            borderLeft: "4px solid var(--primary)",
-            marginBottom: 32,
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.5 }}
-        >
-          <h3
-            style={{
-              fontSize: 14,
-              fontWeight: 900,
-              color: "var(--primary)",
-              marginTop: 0,
-              marginBottom: 12,
-              textTransform: "uppercase",
-              letterSpacing: 1,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <span style={{ fontSize: 18 }}>📖</span> Nội Dung Học Tập
-          </h3>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 16,
-              fontSize: 13,
-              lineHeight: 1.6,
-            }}
-          >
-            <div>
-              <div
-                style={{
-                  fontWeight: 700,
-                  color: "var(--primary)",
-                  marginBottom: 4,
-                }}
-              >
-                1️⃣ Bản Chất Lao Động
-              </div>
-              <span style={{ opacity: 0.8 }}>
-                Lao động cụ thể vs trừu tượng trong kỷ nguyên số 4.0
-              </span>
-            </div>
-            <div>
-              <div
-                style={{
-                  fontWeight: 700,
-                  color: "var(--primary)",
-                  marginBottom: 4,
-                }}
-              >
-                2️⃣ AI & Giá Trị
-              </div>
-              <span style={{ opacity: 0.8 }}>
-                Robot là tư bản bất biến, con người tạo giá trị
-              </span>
-            </div>
-            <div>
-              <div
-                style={{
-                  fontWeight: 700,
-                  color: "var(--primary)",
-                  marginBottom: 4,
-                }}
-              >
-                3️⃣ Phát Triển Nhân Lực
-              </div>
-              <span style={{ opacity: 0.8 }}>
-                Chiến lược DTG của Việt Nam 2025-2030
-              </span>
-            </div>
-            <div>
-              <div
-                style={{
-                  fontWeight: 700,
-                  color: "var(--primary)",
-                  marginBottom: 4,
-                }}
-              >
-                4️⃣ Hệ Sinh Thái
-              </div>
-              <span style={{ opacity: 0.8 }}>
-                Giáo dục, doanh nghiệp, công nghệ bền vững
-              </span>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Project Goal */}
-        <motion.div
-          style={{
-            background: "rgba(165,28,48,0.08)",
-            padding: "24px",
-            borderRadius: 12,
-            borderLeft: "4px solid var(--primary)",
-            marginBottom: 32,
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6, duration: 0.5 }}
-        >
-          <h3
-            style={{
-              fontSize: 14,
-              fontWeight: 900,
-              color: "var(--primary)",
-              marginTop: 0,
-              marginBottom: 12,
-              textTransform: "uppercase",
-              letterSpacing: 1,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <span style={{ fontSize: 18 }}>🎯</span> Mục Tiêu Dự Án
-          </h3>
-          <p
-            style={{
-              fontSize: 13,
-              lineHeight: 1.8,
-              margin: 0,
-              color: "var(--foreground)",
-              opacity: 0.9,
-            }}
-          >
-            Biến lý thuyết kinh tế chính trị Mác từ "khô hanh, trừu tượng" thành
-            "tương tác, sinh động, thú vị". Sinh viên không chỉ học về lao động,
-            giá trị và bóc lột - mà
-            <strong> sống</strong> qua những tình huống thực tế, tranh luận với
-            các nhân vật, và hiểu rõ tại sao "lý thuyết Mác vẫn relevant" cho
-            Việt Nam năm 2025.
-          </p>
-        </motion.div>
-
-        {/* Strategy Section */}
-        <motion.div
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(165, 28, 48, 0.06) 0%, rgba(213,200,178,0.3) 100%)",
-            padding: "28px",
-            borderRadius: 12,
-            borderLeft: "4px solid var(--primary)",
-            backdropFilter: "blur(10px)",
-            marginBottom: 32,
-          }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7, duration: 0.5 }}
-        >
-          <h3
-            style={{
-              fontSize: 14,
-              fontWeight: 900,
-              color: "var(--primary)",
-              marginTop: 0,
-              marginBottom: 12,
-              textTransform: "uppercase",
-              letterSpacing: 1,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <span style={{ fontSize: 18 }}>📊</span> Kế hoạch DTG của VN: Từ
-            "Gia công" → "Sáng tạo"
-          </h3>
-          <p
-            style={{
-              fontSize: 13,
-              lineHeight: 1.8,
-              margin: 0,
-              color: "var(--foreground)",
-              opacity: 0.9,
-            }}
-          >
-            Việt Nam không thể chỉ hoạt động ở mức "gia công máy móc". Chiến
-            lược là{" "}
-            <strong>phát triển lực lượng lao động có tư duy chiến lược</strong>{" "}
-            – những kỹ sư, quản trị viên hiểu rõ AI, có khả năng sáng tạo và
-            điều hành hệ thống. Đây là cách để nâng cao giá trị gia tăng và giữ
-            lại phần lớn giá trị thặng dư trong nước thay vì cho nước ngoài bóc
-            lột.
-          </p>
-        </motion.div>
-
-        {/* Character info */}
-        <motion.div
-          style={{
+            width: 240,
+            background: "rgba(0,0,0,0.1)",
+            borderRight: "1px solid var(--border)",
+            padding: "32px 0",
             display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            paddingTop: 28,
-            borderTop: "1px solid var(--border)",
-            marginBottom: 28,
+            flexDirection: "column",
+            gap: 2,
           }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8, duration: 0.5 }}
         >
-          <div>
-            <div
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id as typeof activeTab)}
               style={{
-                fontSize: 12,
-                fontWeight: 900,
-                color: "var(--primary)",
+                padding: "14px 20px",
+                border: "none",
+                background:
+                  activeTab === tab.id ? "var(--primary)" : "transparent",
+                color: activeTab === tab.id ? "white" : "var(--foreground)",
+                cursor: "pointer",
+                textAlign: "left",
+                fontSize: 11,
+                fontWeight: "900",
                 letterSpacing: 1,
                 textTransform: "uppercase",
-                marginBottom: 4,
+                transition: "all 0.2s",
+                opacity: activeTab === tab.id ? 1 : 0.6,
+              }}
+              onMouseEnter={(e) => {
+                if (activeTab !== tab.id) {
+                  e.currentTarget.style.background = "rgba(165, 28, 48, 0.1)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (activeTab !== tab.id) {
+                  e.currentTarget.style.background = "transparent";
+                }
               }}
             >
-              Nhân Vật Hiện Tại:
-            </div>
-            <div style={{ fontSize: 16, fontWeight: 700 }}>
-              {character.name} · {character.classLabel}{" "}
-              <span style={{ opacity: 0.5 }}>({character.emoji})</span>
-            </div>
-          </div>
-          <div
-            style={{
-              fontSize: 12,
-              color: "var(--foreground)",
-              opacity: 0.5,
-              textAlign: "right",
-            }}
-          >
-            <div style={{ fontWeight: 600, marginBottom: 4 }}>Tiến Trình:</div>
-            <div
-              style={{ fontSize: 24, fontWeight: 900, color: "var(--primary)" }}
-            >
-              ✓ Sẵn sàng
-            </div>
-          </div>
-        </motion.div>
+              <span style={{ fontSize: 14, marginRight: 8 }}>{tab.icon}</span>
+              {tab.label}
+            </button>
+          ))}
+        </div>
 
-        {/* Start Button */}
+        {/* Content Area */}
+        <div
+          style={{
+            flex: 1,
+            padding: "48px 52px",
+            overflowY: "auto",
+            maxHeight: "calc(100vh - 140px)",
+          }}
+        >
+          {activeTab === "overview" && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              {renderSectionHeader(
+                "01",
+                "Tổng Quan",
+                "Cách AI được tích hợp vào quá trình phát triển dự án",
+              )}
+
+              <div style={{ marginTop: 40, marginBottom: 40 }}>
+                <p
+                  style={{
+                    fontSize: 15,
+                    lineHeight: 1.8,
+                    color: "var(--foreground)",
+                    opacity: 0.9,
+                  }}
+                >
+                  Dự án <strong>"Giác Ngộ Số"</strong> là một trò chơi nhập vai
+                  duy tân học Mác kết hợp lý thuyết kinh tế chính trị với trải
+                  nghiệm tương tác. Trong quá trình phát triển, AI được sử dụng
+                  như một <strong>công cụ hỗ trợ</strong> ở các khâu lên ý
+                  tưởng, biên tập nội dung và phát triển kỹ thuật, nhưng{" "}
+                  <strong>không thay thế</strong> tư duy học thuật và quyết định
+                  cuối cùng của nhóm.
+                </p>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 24,
+                }}
+              >
+                {overviewCards.map((card, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    style={{
+                      padding: 24,
+                      background: `${card.color}15`,
+                      border: `2px solid ${card.color}`,
+                      borderRadius: 8,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 32,
+                        fontWeight: "900",
+                        color: card.color,
+                        marginBottom: 8,
+                      }}
+                    >
+                      {card.icon}
+                    </div>
+                    <h3
+                      style={{
+                        fontSize: 13,
+                        fontWeight: "900",
+                        margin: "0 0 4px 0",
+                        textTransform: "uppercase",
+                        letterSpacing: 1,
+                        color: "var(--primary)",
+                      }}
+                    >
+                      {card.name}
+                    </h3>
+                    <p
+                      style={{
+                        fontSize: 10,
+                        color: card.color,
+                        fontWeight: "700",
+                        margin: "0 0 12px 0",
+                        textTransform: "uppercase",
+                        letterSpacing: 0.5,
+                      }}
+                    >
+                      {card.role}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: 13,
+                        lineHeight: 1.6,
+                        color: "var(--foreground)",
+                        opacity: 0.8,
+                        margin: 0,
+                      }}
+                    >
+                      {card.desc}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === "process" && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              {renderSectionHeader(
+                "02",
+                "Quy Trình",
+                "5 bước kiểm soát chất lượng khi sử dụng AI",
+              )}
+
+              <div style={{ marginTop: 40 }}>
+                {processSteps.map((step, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    style={{
+                      marginBottom: 24,
+                      paddingLeft: 32,
+                      borderLeft: `4px solid ${step.color}`,
+                      position: "relative",
+                    }}
+                  >
+                    <div
+                      style={{
+                        position: "absolute",
+                        left: -16,
+                        top: 0,
+                        width: 28,
+                        height: 28,
+                        background: step.color,
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontWeight: "900",
+                        fontSize: 12,
+                      }}
+                    >
+                      {step.id}
+                    </div>
+                    <h4
+                      style={{
+                        fontSize: 14,
+                        fontWeight: "900",
+                        margin: "0 0 8px 0",
+                        color: "var(--primary)",
+                        textTransform: "uppercase",
+                        letterSpacing: 0.5,
+                      }}
+                    >
+                      {step.title}
+                    </h4>
+                    <p
+                      style={{
+                        fontSize: 13,
+                        lineHeight: 1.6,
+                        color: "var(--foreground)",
+                        opacity: 0.85,
+                        margin: 0,
+                      }}
+                    >
+                      {step.text}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === "theory" && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              {renderSectionHeader(
+                "03",
+                "Học Thuật",
+                "Những nguyên lý hướng dẫn cách sử dụng AI",
+              )}
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 24,
+                  marginTop: 40,
+                }}
+              >
+                {theoryCards.map((card, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    style={{
+                      padding: 24,
+                      background: `${card.color}15`,
+                      border: `2px solid ${card.color}`,
+                      borderRadius: 8,
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontSize: 10,
+                        fontWeight: "900",
+                        color: card.color,
+                        marginBottom: 12,
+                        letterSpacing: 1,
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {card.tag}
+                    </div>
+                    <h3
+                      style={{
+                        fontSize: 13,
+                        fontWeight: "900",
+                        margin: "0 0 12px 0",
+                        color: "var(--primary)",
+                        textTransform: "uppercase",
+                        letterSpacing: 0.5,
+                      }}
+                    >
+                      {card.title}
+                    </h3>
+                    <p
+                      style={{
+                        fontSize: 13,
+                        lineHeight: 1.6,
+                        color: "var(--foreground)",
+                        opacity: 0.85,
+                        margin: 0,
+                      }}
+                    >
+                      {card.content}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
+          {activeTab === "transparency" && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.5 }}
+            >
+              {renderSectionHeader(
+                "04",
+                "Cam Kết Minh Bạch",
+                "Những cam kết của nhóm về sử dụng AI",
+              )}
+
+              <div style={{ marginTop: 40 }}>
+                {transparencyPoints.map((point, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.1 }}
+                    style={{
+                      display: "flex",
+                      gap: 16,
+                      marginBottom: 20,
+                      padding: 16,
+                      background: "rgba(165, 28, 48, 0.05)",
+                      borderRadius: 6,
+                      borderLeft: "4px solid var(--primary)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 28,
+                        height: 28,
+                        minWidth: 28,
+                        background: "var(--primary)",
+                        borderRadius: "50%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "white",
+                        fontWeight: "900",
+                        fontSize: 14,
+                      }}
+                    >
+                      ✓
+                    </div>
+                    <p
+                      style={{
+                        fontSize: 13,
+                        lineHeight: 1.7,
+                        color: "var(--foreground)",
+                        opacity: 0.9,
+                        margin: 0,
+                      }}
+                    >
+                      {point}
+                    </p>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div
+                style={{
+                  marginTop: 40,
+                  padding: 24,
+                  background: "rgba(165, 28, 48, 0.1)",
+                  border: "2px solid var(--primary)",
+                  borderRadius: 8,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 13,
+                    lineHeight: 1.8,
+                    color: "var(--foreground)",
+                    margin: 0,
+                    fontStyle: "italic",
+                  }}
+                >
+                  <strong>Kết luận:</strong> Phụ lục này nhằm mục tiêu tạo minh
+                  bạch hoàn toàn về cách AI được sử dụng. Nhóm tin rằng việc
+                  thừa nhận vai trò công cụ của AI và nêu rõ các khâu kiểm soát
+                  chất lượng là trách nhiệm học thuật của mỗi dự án trong thời
+                  đại số.
+                </p>
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </div>
+
+      {/* Start Button */}
+      <motion.div
+        style={{
+          marginTop: 32,
+          display: "flex",
+          justifyContent: "center",
+        }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+      >
         <motion.button
           onClick={onStart}
           className="btn-primary"
           style={{
-            width: "100%",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             gap: 12,
-            fontWeight: 800,
-            fontSize: 16,
-            letterSpacing: 2,
+            fontWeight: "800",
+            fontSize: 14,
+            letterSpacing: 1.5,
             textTransform: "uppercase",
-            padding: "18px 32px",
+            padding: "14px 28px",
             background: "var(--primary)",
+            border: "none",
             boxShadow:
               "0 4px 20px rgba(165, 28, 48, 0.3), 4px 4px 0 var(--secondary)",
+            cursor: "pointer",
           }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1, duration: 0.5 }}
           whileHover={{
             y: -3,
             boxShadow:
               "0 8px 30px rgba(165, 28, 48, 0.4), 6px 6px 0 var(--secondary)",
           }}
-          whileTap={{ scale: 0.98, y: 0 }}
+          whileTap={{ scale: 0.98 }}
         >
-          Bắt đầu trải nghiệm trò chơi
-          <ArrowRight size={20} />
+          Tiếp tục tới phần trò chơi
+          <ArrowRight size={18} />
         </motion.button>
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }
 
@@ -5896,165 +7527,410 @@ function IntroSlidesScreen({
   setCurrentIndex: (i: number) => void;
   onFinish: () => void;
 }) {
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  const [hoveredButton, setHoveredButton] = useState<string | null>(null);
   const slide = slides[currentIndex];
   const isLast = currentIndex === slides.length - 1;
+  const progress = ((currentIndex + 1) / slides.length) * 100;
 
   return (
     <div
-      className="industrial-container"
       style={{
-        maxWidth: 1000,
-        margin: "0 auto",
-        padding: "40px 0",
+        minHeight: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        background:
+          "linear-gradient(135deg, var(--background) 0%, rgba(88, 86, 214, 0.05) 100%)",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
-      <motion.div
-        key={currentIndex}
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        className="glass-industrial"
+      {/* Animated background elements */}
+      <div
         style={{
-          padding: "60px",
-          border: "1px solid var(--primary)",
-          minHeight: 650,
+          position: "absolute",
+          width: "600px",
+          height: "600px",
+          background:
+            "radial-gradient(circle, rgba(88, 86, 214, 0.15) 0%, transparent 70%)",
+          borderRadius: "50%",
+          top: "-200px",
+          right: "-200px",
+          pointerEvents: "none",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          width: "400px",
+          height: "400px",
+          background:
+            "radial-gradient(circle, rgba(88, 86, 214, 0.1) 0%, transparent 70%)",
+          borderRadius: "50%",
+          bottom: "-150px",
+          left: "-150px",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Header with slide counter */}
+      <div
+        style={{
+          padding: "30px 50px",
           display: "flex",
-          flexDirection: "column",
+          justifyContent: "space-between",
+          alignItems: "center",
+          borderBottom: "1px solid rgba(88, 86, 214, 0.2)",
+          backdropFilter: "blur(10px)",
           position: "relative",
+          zIndex: 10,
+        }}
+      >
+        <div>
+          <div
+            style={{
+              fontSize: 12,
+              fontWeight: "900",
+              color: "var(--primary)",
+              letterSpacing: 2,
+              textTransform: "uppercase",
+              opacity: 0.7,
+            }}
+          >
+            � Kinh Tế Chính Trị
+          </div>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 20,
+          }}
+        >
+          <div
+            style={{
+              textAlign: "right",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: "900",
+                color: "var(--primary)",
+              }}
+            >
+              GIỚI THIỆU {String(currentIndex + 1).padStart(2, "0")}
+            </div>
+            <div
+              style={{
+                fontSize: 11,
+                color: "var(--foreground)",
+                opacity: 0.6,
+                marginTop: 4,
+              }}
+            >
+              {slides.length} giới thiệu
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Progress bar */}
+      <div
+        style={{
+          height: 3,
+          background: "rgba(88, 86, 214, 0.1)",
+          position: "relative",
+        }}
+      >
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${progress}%` }}
+          transition={{ duration: 0.5 }}
+          style={{
+            height: "100%",
+            background:
+              "linear-gradient(90deg, var(--primary), rgba(88, 86, 214, 0.7))",
+          }}
+        />
+      </div>
+
+      {/* Main content */}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "60px 50px",
+          position: "relative",
+          zIndex: 5,
+        }}
+      >
+        <motion.div
+          key={currentIndex}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.4 }}
+          style={{
+            width: "100%",
+            maxWidth: 1200,
+          }}
+        >
+          {/* Slide Title Section */}
+          <div style={{ marginBottom: 50 }}>
+            <div
+              style={{
+                display: "inline-block",
+                background:
+                  "linear-gradient(135deg, var(--primary), rgba(88, 86, 214, 0.8))",
+                color: "white",
+                padding: "8px 16px",
+                fontSize: 11,
+                fontWeight: "900",
+                marginBottom: 20,
+                borderRadius: 4,
+                letterSpacing: 1,
+                textTransform: "uppercase",
+              }}
+            >
+              Chuẩn Bị
+            </div>
+            <h1
+              style={{
+                fontSize: 56,
+                fontFamily: "var(--font-slab)",
+                margin: 0,
+                lineHeight: 1.2,
+                color: "var(--foreground)",
+                fontWeight: "900",
+              }}
+            >
+              {slide.title}
+            </h1>
+          </div>
+
+          {/* Main content box */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 40,
+              alignItems: "start",
+            }}
+          >
+            {/* Left column - Content */}
+            <div>
+              <div
+                style={{
+                  background: "rgba(88, 86, 214, 0.08)",
+                  padding: "32px",
+                  borderRadius: 12,
+                  borderLeft: "4px solid var(--primary)",
+                  backdropFilter: "blur(10px)",
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 15,
+                    lineHeight: 1.8,
+                    color: "var(--foreground)",
+                    margin: 0,
+                    opacity: 0.9,
+                    fontWeight: 500,
+                  }}
+                >
+                  {slide.content}
+                </p>
+              </div>
+            </div>
+
+            {/* Right column - Key Points */}
+            {slide.keyPoints.length > 0 && (
+              <div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontWeight: "900",
+                    color: "var(--primary)",
+                    marginBottom: 20,
+                    letterSpacing: 1.5,
+                    textTransform: "uppercase",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  <span style={{ fontSize: 16 }}>◆</span>
+                  Khái Niệm Cốt Lõi
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 14,
+                  }}
+                >
+                  {slide.keyPoints.map((point, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.05 }}
+                      onMouseEnter={() => setHoveredIndex(i)}
+                      onMouseLeave={() => setHoveredIndex(null)}
+                      style={{
+                        display: "flex",
+                        gap: 12,
+                        alignItems: "flex-start",
+                        padding: "12px",
+                        background:
+                          hoveredIndex === i
+                            ? "rgba(88, 86, 214, 0.15)"
+                            : "rgba(88, 86, 214, 0.05)",
+                        borderRadius: 8,
+                        border:
+                          hoveredIndex === i
+                            ? "1px solid rgba(88, 86, 214, 0.3)"
+                            : "1px solid rgba(88, 86, 214, 0.15)",
+                        transition: "all 0.3s ease",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: "var(--primary)",
+                          fontWeight: "900",
+                          fontSize: 18,
+                          minWidth: 24,
+                        }}
+                      >
+                        ►
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 13,
+                          lineHeight: 1.6,
+                          opacity: 0.85,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {point}
+                      </span>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Footer with navigation */}
+      <div
+        style={{
+          padding: "30px 50px",
+          display: "flex",
+          gap: 16,
+          justifyContent: "space-between",
+          alignItems: "center",
+          borderTop: "1px solid rgba(88, 86, 214, 0.2)",
+          backdropFilter: "blur(10px)",
+          position: "relative",
+          zIndex: 10,
         }}
       >
         <div
           style={{
-            position: "absolute",
-            top: 20,
-            right: 30,
-            fontSize: 12,
-            color: "var(--primary)",
-            fontWeight: "900",
-            letterSpacing: 2,
+            display: "flex",
+            gap: 10,
+            alignItems: "center",
           }}
         >
-          LEARNING_MODULE // 0{currentIndex + 1} OF 0{slides.length}
-        </div>
-
-        <div style={{ marginBottom: 40 }}>
-          <div
-            style={{
-              display: "inline-block",
-              background: "var(--primary)",
-              color: "white",
-              padding: "4px 12px",
-              fontSize: 10,
-              fontWeight: "900",
-              marginBottom: 15,
-              borderRadius: 2,
-            }}
-          >
-            CONTENT LEARNING
-          </div>
-          <h2
-            style={{
-              fontSize: 42,
-              fontFamily: "var(--font-slab)",
-              margin: 0,
-              textTransform: "uppercase",
-              lineHeight: 1.1,
-            }}
-          >
-            {slide.title}
-          </h2>
-        </div>
-
-        <div
-          style={{
-            background: "rgba(255,255,255,0.02)",
-            padding: "32px",
-            borderRadius: 12,
-            borderLeft: "4px solid var(--primary)",
-            marginBottom: 32,
-            flex: 1,
-          }}
-        >
-          <p
-            style={{
-              fontSize: 16,
-              lineHeight: 1.8,
-              color: "var(--foreground)",
-              opacity: 0.9,
-              marginBottom: 24,
-              margin: 0,
-            }}
-          >
-            {slide.content}
-          </p>
-
-          {/* Key Points */}
-          {slide.keyPoints.length > 0 && (
-            <div style={{ marginTop: 32 }}>
-              <div
-                style={{
-                  fontSize: 11,
-                  fontWeight: "900",
-                  color: "var(--primary)",
-                  marginBottom: 12,
-                  letterSpacing: 1,
-                  textTransform: "uppercase",
-                }}
-              >
-                Luận điểm chính:
-              </div>
-              {slide.keyPoints.map((point, i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: "flex",
-                    gap: 12,
-                    alignItems: "flex-start",
-                    marginBottom: i === slide.keyPoints.length - 1 ? 0 : 10,
-                    fontSize: 14,
-                    lineHeight: 1.6,
-                  }}
-                >
-                  <span style={{ color: "var(--primary)", fontWeight: "900" }}>
-                    ›
-                  </span>
-                  <span style={{ opacity: 0.85 }}>{point}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div style={{ display: "flex", gap: 20 }}>
-          {currentIndex > 0 && (
-            <button
-              onClick={() => setCurrentIndex(currentIndex - 1)}
-              className="btn-primary"
+          {/* Slide indicators */}
+          {slides.map((_, i) => (
+            <motion.button
+              key={i}
+              onClick={() => setCurrentIndex(i)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
               style={{
-                flex: 0.3,
-                background: "transparent",
-                border: "1px solid var(--primary)",
-                color: "var(--primary)",
+                width: 8,
+                height: 8,
+                borderRadius: "50%",
+                border: "none",
+                cursor: "pointer",
+                background:
+                  i === currentIndex
+                    ? "var(--primary)"
+                    : "rgba(88, 86, 214, 0.3)",
+                transition: "all 0.3s ease",
+              }}
+            />
+          ))}
+        </div>
+
+        <div style={{ display: "flex", gap: 12 }}>
+          {currentIndex > 0 && (
+            <motion.button
+              onClick={() => setCurrentIndex(currentIndex - 1)}
+              onMouseEnter={() => setHoveredButton("back")}
+              onMouseLeave={() => setHoveredButton(null)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={{
+                padding: "10px 20px",
+                background:
+                  hoveredButton === "back"
+                    ? "rgba(88, 86, 214, 0.1)"
+                    : "transparent",
+                border:
+                  hoveredButton === "back"
+                    ? "1.5px solid rgba(88, 86, 214, 0.5)"
+                    : "1.5px solid rgba(88, 86, 214, 0.3)",
+                color: "var(--foreground)",
+                fontSize: 13,
+                fontWeight: "900",
+                borderRadius: 6,
+                cursor: "pointer",
+                transition: "all 0.3s ease",
+                letterSpacing: 1,
+                textTransform: "uppercase",
               }}
             >
-              QUAY LẠI
-            </button>
+              ← Giới Thiệu Trước
+            </motion.button>
           )}
-          <button
-            onClick={
-              isLast ? onFinish : () => setCurrentIndex(currentIndex + 1)
-            }
-            className="btn-primary"
+          <motion.button
+            onClick={() => {
+              if (isLast) {
+                onFinish();
+              } else {
+                setCurrentIndex(currentIndex + 1);
+              }
+            }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             style={{
-              flex: 1,
-              fontSize: 18,
+              padding: "10px 24px",
+              background:
+                "linear-gradient(135deg, var(--primary), rgba(88, 86, 214, 0.8))",
+              color: "white",
+              fontSize: 13,
               fontWeight: "900",
-              letterSpacing: 2,
+              borderRadius: 6,
+              border: "none",
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              letterSpacing: 1,
+              textTransform: "uppercase",
             }}
           >
-            {isLast ? "TIẾP TỤC TỚI PHỤ LỤC ➔" : "TIẾP TỤC ➔"}
-          </button>
+            {isLast ? "Bắt Đầu Bài Học ➔" : "Giới Thiệu Tiếp ➔"}
+          </motion.button>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
