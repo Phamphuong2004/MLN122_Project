@@ -8157,20 +8157,20 @@ function LandingView({ onStart }: { onStart: () => void }) {
 const RulesView = ({ onContinue }: { onContinue: () => void }) => {
   const rules = [
     {
-      title: "Sức mạnh Tri thức",
-      desc: "Mỗi lựa chọn cần kiến thức về kinh tế. Quyết định sai sẽ ảnh hưởng đến tương lai của bạn và cộng đồng.",
+      title: "Kiến thức là Vũ khí",
+      desc: "Sử dụng kiến thức Kinh tế chính trị để đưa ra lựa chọn đúng. Trả lời sai sẽ làm giảm các chỉ số quan trọng của bạn.",
     },
     {
-      title: "Đấu tranh giai cấp",
-      desc: "Bạn là người lao động đối mặt với các tập đoàn công nghệ. Hãy chọn cách để bảo vệ quyền lợi của mình.",
+      title: "Chiến lược Sinh tồn",
+      desc: "Trong vai người lao động thời đại AI, bạn phải đối đầu với các tập đoàn công nghệ để bảo vệ quyền lợi và giá trị thặng dư.",
     },
     {
-      title: "Lao động là nguồn gốc",
-      desc: "Chỉ có con người mới tạo ra giá trị thật. Quản lý tốt kiến thức, sức khỏe và các mối quan hệ của bạn.",
+      title: "Quản trị Tài nguyên",
+      desc: "Cân bằng 3 chỉ số cốt lõi: Tri thức, Sức khỏe và Tài chính. Thiếu hụt bất kỳ chỉ số nào cũng sẽ dẫn đến thất bại.",
     },
     {
-      title: "Kết thúc đa tuyến",
-      desc: "Lựa chọn của bạn quyết định tương lai: Trở thành người dẫn dắt công nghệ hay bị công nghệ kiểm soát?",
+      title: "Quyết định Vận mệnh",
+      desc: "Mọi lựa chọn đều dẫn đến kết cục khác nhau. Bạn sẽ trở thành người làm chủ công nghệ hay nô lệ của thuật toán?",
     },
   ];
   return (
