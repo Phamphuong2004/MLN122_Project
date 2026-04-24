@@ -618,52 +618,52 @@ const BATTLE: { enemy: NPC; rounds: BattleRound[] } = {
 const SCENES: Record<SceneId, Scene> = {
   prologue: {
     id: "prologue",
-    title: "Lenh Chuyen Ca Thu",
+    title: "Lệnh Chuyển Ca Thứ",
     bgAccent: "var(--primary)",
-    setting: "Nha may Sang Nam · Binh Duong · 03/2025",
+    setting: "Nhà máy Sáng Nam · Bình Dương · 03/2025",
     narrative:
-      'Ca sang dau tuan bat dau nhu moi ngay, cho den khi bang thong bao dien tu nhap nhay dong chu: "Du an Loom-X se duoc kich hoat sau 72 gio". Tu khoi van phong kinh doanh den to may so 3, ai cung doan rang day la dot tai cau truc lon nhat cua nha may trong 20 nam. Ban vua la nhan su moi, vua la nguoi duy nhat chua bi cuon vao tam trang "cu lam da roi tinh sau".',
+      'Ca sáng đầu tuần bắt đầu như mọi ngày, cho đến khi bảng thông báo điện tử nhấp nháy dòng chữ: "Dự án Loom-X sẽ được kích hoạt sau 72 giờ". Từ khối văn phòng kinh doanh đến tổ máy số 3, ai cũng đoán rằng đây là đợt tái cấu trúc lớn nhất của nhà máy trong 20 năm. Bạn vừa là nhân sự mới, vừa là người duy nhất chưa bị cuốn vào tâm trạng "cũ làm đã rồi tinh sau".',
     npc: {
       name: "Ba Hoa",
       emoji: "👩‍💼",
-      role: "Truong phong nhan su",
+      role: "Trưởng phòng nhân sự",
       dialogue:
-        "Toi chua the noi het. Chi biet rang sau 72 gio, day chuyen moi se vao. Neu muon ton tai o Sang Nam, moi nguoi phai tu chon cach dung trong cuoc thay doi nay.",
+        "Tôi chưa thể nói hết. Chỉ biết rằng sau 72 giờ, dây chuyền mới sẽ vào. Nếu muốn tồn tại ở Sáng Nam, mỗi người phải tự chọn cách đứng trong cuộc thay đổi này.",
     },
     choices: [
       {
-        text: "🎓 Ban xin danh sach vi tri se bi anh huong boi Loom-X, muon biet quan he giua nang suat moi va so phan lao dong cu.",
+        text: "🎓 Bạn xin danh sách vị trí sẽ bị ảnh hưởng bởi Loom-X, muốn biết quan hệ giữa năng suất mới và số phận lao động cũ.",
         feedback:
-          "Ba Hoa khong tra loi thang, nhung su im lang cua ba noi len rat nhieu. Ban da buoc nha may phai lo dien: day khong chi la dau tu may moc, ma la sap xep lai ai duoc o lai va ai bi day ra ngoai.",
+          "Ba Hoa không trả lời thẳng, nhưng sự im lặng của bà nói lên rất nhiều. Bạn đã buộc nhà máy phải lộ diện: đây không chỉ là đầu tư máy móc, mà là sắp xếp lại ai được ở lại và ai bị đẩy ra ngoài.",
         effect: { knowledge: 10, social: 10 },
         next: "baotu",
-        conceptTag: "Dieu tra tai cau truc",
+        conceptTag: "Điều tra tái cấu trúc",
         requirement: { stat: "knowledge", min: 50 },
         roleBonus: "student",
       },
       {
-        text: "👷 Ban khong hoi vong vo, ma yeu cau noi ro truoc mat ca to may: robot vao thi cong nhan nao se mat ca, cong nhan nao bi ep tang toc.",
+        text: "👷 Bạn không hỏi vòng vo, mà yêu cầu nói rõ trước mặt cả tổ máy: robot vào thì công nhân nào sẽ mất cả, công nhân nào bị ép tăng tốc.",
         feedback:
-          "May nguoi dung canh do quay sang nhin ban. Lan dau tien trong buoi sang, noi lo trong xuong duoc noi ra bang giong noi cua mot con nguoi, khong phai bang tin don hanh lang.",
+          "Mấy người đứng cạnh đó quay sang nhìn bạn. Lần đầu tiên trong buổi sáng, nỗi lo trong xưởng được nói ra bằng giọng nói của một con người, không phải bằng tin đồn hành lang.",
         effect: { social: 12, willpower: 5 },
         next: "baotu",
-        conceptTag: "Len tieng tai xuong",
+        conceptTag: "Lên tiếng tại xưởng",
         roleBonus: "worker",
       },
       {
-        text: "💻 Ban xin quyen xem ban mo phong cua Loom-X, quyet dinh phai hieu he thong truoc khi he thong quyet dinh so phan cua minh.",
+        text: "💻 Bạn xin quyền xem bản mô phỏng của Loom-X, quyết định phải hiểu hệ thống trước khi hệ thống quyết định số phận của mình.",
         feedback:
-          "Ba Hoa bat ngo vi ban biet cach dat cau hoi dung. Ban duoc hen gap phong ky thuat vao cuoi ca, va lan dau tien cam thay cong nghe co the la cua kinh de tu ve thay vi chi la nguon de doa.",
+          "Ba Hoa bất ngờ vì bạn biết cách đặt câu hỏi đúng. Bạn được hẹn gặp phòng kỹ thuật vào cuối ca, và lần đầu tiên cảm thấy công nghệ có thể được giành lại từ tay giới tư bản thay vì chỉ là nguồn đe dọa.",
         effect: { knowledge: 8, wealth: 8 },
         next: "baotu",
-        conceptTag: "Tham nhap he thong",
+        conceptTag: "Thâm nhập hệ thống",
         requirement: { stat: "wealth", min: 50 },
         roleBonus: "technician",
       },
       {
-        text: "Ban giu im lang, chon quan sat va di theo dong nguoi ve to may so 3.",
+        text: "Bạn giữ im lặng, chọn quan sát và đi theo dòng người về tổ máy số 3.",
         feedback:
-          "Ban chua co cau tra loi nao, nhung khong khi trong xuong da bao cho ban biet: 72 gio toi se khong con la chuyen lam viec binh thuong nua.",
+          "Bạn chưa có câu trả lời nào, nhưng không khí trong xưởng đã báo cho bạn biết: 72 giờ tới sẽ không còn là chuyện làm việc bình thường nữa.",
         effect: { willpower: 5 },
         next: "baotu",
       },
@@ -672,43 +672,43 @@ const SCENES: Record<SceneId, Scene> = {
 
   baotu: {
     id: "baotu",
-    title: "Muoi Lam Phut Cua Bac Tu",
+    title: "Mười Lăm Phút Của Bác Tư",
     bgAccent: "var(--secondary)",
-    setting: "To may so 3 · 10:15 sang",
+    setting: "Tổ máy số 3 · 10:15 sáng",
     narrative:
-      "Bac Tu khong nhin vao man hinh thong bao, ong nhin vao chiec ao dang may do. Ong noi rang nha may nao cung muon chay nhanh hon, nhung khong ai tu hoi cai gi tao nen gia tri cua chiec ao truoc khi robot xuat hien. Xung quanh, may may van go nhip deu, nhu the ca xuong dang cho mot ai do noi thanh loi dieu ai cung cam duoc ma chua ai goi dung ten.",
+      "Bác Tư không nhìn vào màn hình thông báo, ông nhìn vào chiếc áo đang may dở. Ông nói rằng nhà máy nào cũng muốn chạy nhanh hơn, nhưng không ai tự hỏi cái gì tạo nên giá trị của chiếc áo trước khi robot xuất hiện. Xung quanh, máy may vẫn gõ nhịp đều, như thể cả xưởng đang chờ một ai đó nói thành lời điều ai cũng cảm được mà chưa ai gọi đúng tên.",
     npc: {
-      name: "Bac Tu",
+      name: "Bác Tư",
       emoji: "👴",
-      role: "Tho may · 20 nam kinh nghiem",
+      role: "Thợ may · 20 năm kinh nghiệm",
       dialogue:
-        "Nguoi ta nhin 15 phut cua Bac nhu 15 phut rieng cua mot ong gia. Khong phai. Day la thoi gian lao dong xa hoi ket tinh trong tung duong chi. Neu mai day chuyen nhanh gap doi, cau hoi khong chi la ai nhanh hon, ma la ai dang tao ra gia tri moi.",
+        "Người ta nhìn 15 phút của Bác như 15 phút riêng của một ông già. Không phải. Đây là thời gian lao động xã hội kết tinh trong từng đường chỉ. Nếu mai dây chuyền nhanh gấp đôi, câu hỏi không chỉ là ai nhanh hơn, mà là ai đang tạo ra giá trị mới.",
     },
     choices: [
       {
-        text: "🎓 Ban dung bua nghi ngan de bien to may thanh mot 'lop hoc hien truong', giai thich cho moi nguoi hai mat cua lao dong ngay tren chiec ao Bac Tu dang may.",
+        text: "🎓 Bạn dùng bữa nghỉ ngắn để biến tổ máy thành một 'lớp học hiện trường', giải thích cho mọi người hai mặt của lao động ngay trên chiếc áo Bác Tư đang may.",
         feedback:
-          "Nguoi trong to bat dau dung lai nghe thay vi coi day la loi than van cua nguoi gia. Ban khong doc bai, ban bien ly luan thanh thu ma ai cung nhin thay tren ban may.",
+          "Người trong tổ bắt đầu dừng lại nghe thay vì coi đây là lời than vãn của người già. Bạn không đọc bài, bạn biến lý luận thành thứ mà ai cũng nhìn thấy trên bàn máy.",
         effect: { knowledge: 25, social: 8, gem: "Hai Mặt Lao Động" },
         next: "robots",
-        conceptTag: "Lao dong hai mat",
+        conceptTag: "Lao động hai mặt",
         requirement: { stat: "knowledge", min: 40 },
         roleBonus: "student",
       },
       {
-        text: "💻 Ban mo bang mo phong nang suat, chi cho Bac Tu va ca to thay rang toc do may tang co the day gia tri ao xuong va tien cong vao the bi dong bang.",
+        text: "💻 Bạn mở bảng mô phỏng năng suất, chỉ cho Bác Tư và cả tổ thấy rằng tốc độ máy tăng có thể đẩy giá trị áo xuống và tiền công vào thế bị đóng băng.",
         feedback:
-          "Bac Tu nhin man hinh rat lau roi chi noi mot cau: 'Vay la may nhanh hon chua chac doi minh kham kha hon.' Tu khoanh khac do, cong nghe khong con la phep mau, ma tro thanh bai toan quyen luc.",
+          "Bác Tư nhìn màn hình rất lâu rồi chỉ nói một câu: 'Vậy là máy nhanh hơn chưa chắc đời mình khá hơn.' Từ khoảnh khắc đó, công nghệ không còn là phép màu, mà trở thành bài toán quyền lực.",
         effect: { knowledge: 18, wealth: 8, gem: "Năng Suất & Giá Trị" },
         next: "robots",
-        conceptTag: "Do thi nang suat",
+        conceptTag: "Đồ thị năng suất",
         requirement: { stat: "wealth", min: 45 },
         roleBonus: "technician",
       },
       {
-        text: "👷 Ban noi thang voi ca to: neu minh khong hieu minh dang tao ra gia tri gi, ngay Loom-X bat len thi minh se bi thay the ma khong kip mo mieng.",
+        text: "👷 Bạn nói thẳng với cả tổ: nếu mình không hiểu mình đang tạo ra giá trị gì, ngày Loom-X bật lên thì mình sẽ bị thay thế mà không kịp mở miệng.",
         feedback:
-          "Khong ai cuoi cau noi do. Bac Tu tat may trong vai giay, va su im lang ay co suc nang hon moi bai phat bieu. To may lan dau tien nhin nõi so cua minh nhu mot van de chung.",
+          "Không ai cười câu nói đó. Bác Tư tắt máy trong vài giây, và sự im lặng ấy có sức nặng hơn mọi bài phát biểu. Tổ máy lần đầu tiên nhìn nỗi sợ của mình như một vấn đề chung.",
         effect: {
           willpower: 20,
           social: 15,
@@ -716,14 +716,14 @@ const SCENES: Record<SceneId, Scene> = {
           gem: "Lao Động Sống & Chết",
         },
         next: "robots",
-        conceptTag: "Tinh than to may",
+        conceptTag: "Tinh thần tổ máy",
         requirement: { stat: "willpower", min: 35 },
         roleBonus: "worker",
       },
       {
-        text: "Ban chon nghe va ghi nho, tam thoi chua dung vao cuoc tranh luan dang am len trong to.",
+        text: "Bạn chọn nghe và ghi nhớ, tạm thời chưa đứng vào cuộc tranh luận đang âm lên trong tổ.",
         feedback:
-          'Bac Tu khong ep ban noi gi. Ong chi bao: "Dung de nguoi ta viet nghia cua cong viec thay cho minh." Cau noi ay bam theo ban ca ngay.',
+          'Bác Tư không ép bạn nói gì. Ông chỉ bảo: "Đừng để người ta viết nghĩa của công việc thay cho mình." Câu nói ấy bám theo bạn cả ngày.',
         effect: { wealth: 5 },
         next: "robots",
       },
@@ -732,43 +732,43 @@ const SCENES: Record<SceneId, Scene> = {
 
   robots: {
     id: "robots",
-    title: "72 Gio Sau",
+    title: "72 Giờ Sau",
     bgAccent: "var(--destructive)",
-    setting: "San nha may · 3 ngay sau",
+    setting: "Sàn nhà máy · 3 ngày sau",
     narrative:
-      "Loom-X duoc ha xuong giua san nhu mot nghi le. Ban giam doc dung tren bac tam cap goi day la 'buoc nhay nang suat'. Cong nhan dung thanh tung cum, nguoi chup anh, nguoi im lang, nguoi da tinh duong rut. Chị Mai khong nhin robot, chi nhin bieu cam cua nhung nguoi dang can mot cau tra loi de quyet dinh co nen tiep tuc o lai hay khong.",
+      "Loom-X được hạ xuống giữa sàn như một nghi lễ. Ban giám đốc đứng trên bậc tam cấp gọi đây là 'bước nhảy năng suất'. Công nhân đứng thành từng cụm, người chụp ảnh, người im lặng, người đã tính đường rút. Chị Mai không nhìn robot, chỉ nhìn biểu cảm của những người đang cần một câu trả lời để quyết định có nên tiếp tục ở lại hay không.",
     npc: {
-      name: "Chi Mai",
+      name: "Chị Mai",
       emoji: "👩‍🦱",
-      role: "Truong cong doan",
+      role: "Trưởng công đoàn",
       dialogue:
-        "May moc co the moi, nhung cau hoi cu van con do: ai huong thanh qua, ai tra gia, ai bi day thanh du ra ben le? Neu hom nay minh noi sai, ca nha may se tin rang tu dong hoa la dinh menh.",
+        "Máy móc có thể mới, nhưng câu hỏi cũ vẫn còn đó: ai hưởng thành quả, ai trả giá, ai bị đẩy thành dư ra bên lề? Nếu hôm nay mình nói sai, cả nhà máy sẽ tin rằng tự động hóa là định mệnh.",
     },
     choices: [
       {
-        text: "🎓 Ban dung giua san va ve ra nghich ly cua Chuong 6: tung doanh nghiep thay lao dong song de tranh loi, nhung ca he thong lai tu cat vao nguon tao gia tri cua no.",
+        text: "🎓 Bạn đứng giữa sàn và vẽ ra nghịch lý của Chương 6: từng doanh nghiệp thay lao động sống để tranh lợi, nhưng cả hệ thống lại tự cắt vào nguồn tạo giá trị của nó.",
         feedback:
-          "Nguoi nghe khong con chi so robot va ban tan gia may nua. Ho bat dau hoi mot cau khac: neu loi nhuan duoc bao bang viec cat bo lao dong song, den luc nao chinh he thong se khat gia tri moi?",
+          "Người nghe không còn chỉ sợ robot và bàn tán giá máy nữa. Họ bắt đầu hỏi một câu khác: nếu lợi nhuận được bảo bằng việc cắt bỏ lao động sống, đến lúc nào chính hệ thống sẽ khát giá trị mới?",
         effect: { knowledge: 30, social: 25, gem: "Nghịch Lý Tự Động Hóa" },
         next: "overtime",
-        conceptTag: "Nghich ly he thong",
+        conceptTag: "Nghịch lý hệ thống",
         requirement: { stat: "knowledge", min: 55 },
         roleBonus: "student",
       },
       {
-        text: "💻 Ban tiep can khu ky thuat, noi ro minh muon nam quyen van hanh Loom-X truoc khi day chuyen moi bi khoa kin boi mot nhom nho.",
+        text: "💻 Bạn tiếp cận khu kỹ thuật, nói rõ mình muốn nắm quyền vận hành Loom-X trước khi dây chuyền mới bị khóa kín bởi một nhóm nhỏ.",
         feedback:
-          "Ky su ben cung cap ngoai nhin ban bang anh mat de phong, nhung phai thua nhan ban hieu cach dat van de. Ban khong xin duoc an phan an toan, ban dang tranh quyen buoc vao noi cong nghe duoc dung de quyet dinh so phan nguoi khac.",
+          "Kỹ sư bên cung cấp ngoài nhìn bạn bằng ánh mắt dè phòng, nhưng phải thừa nhận bạn hiểu cách đặt vấn đề. Bạn không xin được an phận an toàn, bạn đang tranh quyền bước vào nơi công nghệ được dùng để quyết định số phận người khác.",
         effect: { wealth: 25, knowledge: 12, social: 5 },
         next: "overtime",
-        conceptTag: "Gianh quyen hieu may",
+        conceptTag: "Giành quyền hiểu máy",
         requirement: { stat: "wealth", min: 50 },
         roleBonus: "technician",
       },
       {
-        text: "👷 Ban cung Chi Mai phat dong ban ky ten ngay tai san, doi doanh nghiep cam ket dao tao lai va khong sa thai vo dieu kien sau khi Loom-X vao chay.",
+        text: "👷 Bạn cùng Chị Mai phát động bản ký tên ngay tại sàn, đòi doanh nghiệp cam kết đào tạo lại và không sa thải vô điều kiện sau khi Loom-X vào chạy.",
         feedback:
-          "Ban ky ten truyen tay nhanh hon ca thong bao noi bo. Den luc giam doc nhan ra, van de khong con nam o may moc nua, ma da tro thanh cau hoi cong khai ve viec ai phai ganh hau qua cua tu dong hoa.",
+          "Bản ký tên truyền tay nhanh hơn cả thông báo nội bộ. Đến lúc giám đốc nhận ra, vấn đề không còn nằm ở máy móc nữa, mà đã trở thành câu hỏi công khai về việc ai phải gánh hậu quả của tự động hóa.",
         effect: {
           willpower: 30,
           social: 20,
@@ -776,14 +776,14 @@ const SCENES: Record<SceneId, Scene> = {
           gem: "Đoàn Kết Công Nhân",
         },
         next: "overtime",
-        conceptTag: "Ky ten tap the",
+        conceptTag: "Ký tên tập thể",
         requirement: { stat: "willpower", min: 50 },
         roleBonus: "worker",
       },
       {
-        text: "Ban quyet dinh lui lai, theo doi xem san nha may se nghi ve Loom-X theo huong nao truoc khi chon phe.",
+        text: "Bạn quyết định lùi lại, theo dõi xem sàn nhà máy sẽ nghiêng về Loom-X theo hướng nào trước khi chọn phe.",
         feedback:
-          "Lui lai giup ban thay ro hon mot dieu: su im lang trong nha may khong trung lap, no dang nghien ve phia nao co can dam goi ten ban chat cua cuoc doi doi nay.",
+          "Lùi lại giúp bạn thấy rõ hơn một điều: sự im lặng trong nhà máy không trung lập, nó đang nghiêng về phía nào có can đảm gọi tên bản chất của cuộc đổi đời này.",
         effect: { willpower: -5, social: 5 },
         next: "overtime",
       },
@@ -792,45 +792,45 @@ const SCENES: Record<SceneId, Scene> = {
 
   overtime: {
     id: "overtime",
-    title: "Bang Hieu Suat Do",
+    title: "Bảng Hiệu Suất Đỏ",
     bgAccent: "var(--destructive)",
-    setting: "Ca dem thu nghiem · 20:00",
+    setting: "Ca đêm thử nghiệm · 20:00",
     narrative:
-      'Ngay dau Loom-X chay thu, den ca dem bang nang suat moi da duoc treo khap xuong. Camera AI do tung nhat tay, tung lan dung lai, tung giay trao doi. Tieng loa lien tuc goi: "Bam sat nhip may moi". Bac Tu run tay. Mot chi trong to bat dau khoc vi khong theo kip dinh muc vua duoc cap nhat cach do 10 phut.',
+      'Ngày đầu Loom-X chạy thử, đến ca đêm bảng năng suất mới đã được treo khắp xưởng. Camera AI đo từng nhát tay, từng lần dừng lại, từng giây trao đổi. Tiếng loa liên tục gọi: "Bám sát nhịp máy mới". Bác Tư run tay. Một chị trong tổ bắt đầu khóc vì không theo kịp định mức vừa được cập nhật cách đó 10 phút.',
     npc: {
-      name: "Giam sat vien",
+      name: "Giám sát viên",
       emoji: "🧐",
-      role: "Quan ly ca dem",
+      role: "Quản lý ca đêm",
       dialogue:
-        "Muon giu don hang thi phai theo kip he thong. Day khong phai ep buoc, day la tieu chuan moi. Khong theo kip thi tu minh roi khoi day chuyen.",
+        "Muốn giữ đơn hàng thì phải theo kịp hệ thống. Đây không phải ép buộc, đây là tiêu chuẩn mới. Không theo kịp thì tự mình rời khỏi dây chuyền.",
     },
     choices: [
       {
-        text: "🎓 Ban phan tich ngay tai bang chi tieu: day la cach hut gia tri thang du tuyet doi bang viec keo dai va nen chat cuong do lao dong.",
+        text: "🎓 Bạn phân tích ngay tại bảng chỉ tiêu: đây là cách hút giá trị thặng dư tuyệt đối bằng việc kéo dài và nén chặt cường độ lao động.",
         feedback:
-          "Khi ly luan duoc goi dung ten, su uat uc trong xuong thoi khong con mo ho. Moi nguoi bat dau thay ro rang day khong phai van de 'yeu nghe' hay 'co gang them chut', ma la mot co che boc lot dang duoc hop thuc hoa bang du lieu.",
+          "Khi lý luận được gọi đúng tên, sự uất ức trong xưởng thôi không còn mơ hồ. Mọi người bắt đầu thấy rõ rằng đây không phải vấn đề 'yêu nghề' hay 'cố gắng thêm chút', mà là một cơ chế bóc lột đang được hợp thức hóa bằng dữ liệu.",
         effect: { knowledge: 20, willpower: 15, gem: "Thặng Dư Tuyệt Đối" },
         next: "reserve_army",
-        conceptTag: "Bang ten boc lot",
+        conceptTag: "Bảng tên bóc lột",
         roleBonus: "student",
       },
       {
-        text: "👷 Ban ra hieu cho ca to dong loat ha toc do va chi lam dung quy trinh an toan, bien ca dem thanh mot cuoc can suc co to chuc.",
+        text: "👷 Bạn ra hiệu cho cả tổ đồng loạt hạ tốc độ và chỉ làm đúng quy trình an toàn, biến ca đêm thành một cuộc cân sức có tổ chức.",
         feedback:
-          "Quan ly ca dem co the de doa tung nguoi, nhung khong the de doa ca mot to dang dong nhip voi nhau. Trong lan dau tien, Loom-X phai chay theo nguoi thay vi nguoi chay theo Loom-X.",
+          "Quản lý ca đêm có thể đe dọa từng người, nhưng không thể đe dọa cả một tổ đang đồng nhịp với nhau. Trong lần đầu tiên, Loom-X phải chạy theo người thay vì người chạy theo Loom-X.",
         effect: { social: 20, willpower: 20, gem: "Đấu Tranh Giai Cấp" },
         next: "reserve_army",
-        conceptTag: "Cham lai de song",
+        conceptTag: "Chậm lại để sống",
         requirement: { stat: "willpower", min: 45 },
         roleBonus: "worker",
       },
       {
-        text: "💻 Ban dot nhap vao cau hinh phan luong, chuyen Loom-X sang uu tien can bang tai trong thay vi don suc ep len nhom nguoi yeu nhat.",
+        text: "💻 Bạn đột nhập vào cấu hình phân luồng, chuyển Loom-X sang ưu tiên cân bằng tải trọng thay vì dồn sức ép lên nhóm người yếu nhất.",
         feedback:
-          "He thong khong bao gio trung lap. No phan bo ap luc theo cach duoc lap trinh. Khi ban doi tham so, ca to thang duoc mot khoang tho. Ban vua chung minh cong nghe co the bi giat lai tu tay nhung ai dung no de ep nguoi.",
+          "Hệ thống không bao giờ trung lập. Nó phân bổ áp lực theo cách được lập trình. Khi bạn đổi tham số, cả tổ thắng được một khoảng thở. Bạn vừa chứng minh công nghệ có thể bị giật lại từ tay những ai dùng nó để ép người.",
         effect: { knowledge: 15, wealth: 20, gem: "AI Nhân Văn" },
         next: "reserve_army",
-        conceptTag: "Giat lai tham so",
+        conceptTag: "Giật lại tham số",
         requirement: { stat: "wealth", min: 40 },
         roleBonus: "technician",
       },
@@ -839,45 +839,45 @@ const SCENES: Record<SceneId, Scene> = {
 
   reserve_army: {
     id: "reserve_army",
-    title: "Danh Sach Cat Giam",
+    title: "Danh Sách Cắt Giảm",
     bgAccent: "var(--muted)",
-    setting: "Cong nha may · chieu mua",
+    setting: "Cổng nhà máy · chiều mưa",
     narrative:
-      "Ba ngay sau ca thu nghiem, mot file excel in ra dan day tren bang thong bao. 30 ten bi dua vao nhom 'tam dung vi tri'. Khong ai noi tu sa thai, nhung ai cung hieu. Anh Hung dung trong mua, tay giu tui do nghe, mat khong nhin vao ai. Loom-X van chay deu phia sau, rat on dinh, rat dep, rat lanh.",
+      "Ba ngày sau ca thử nghiệm, một file excel in ra dán đầy trên bảng thông báo. 30 tên bị đưa vào nhóm 'tạm dừng vị trí'. Không ai nói từ sa thải, nhưng ai cũng hiểu. Anh Hùng đứng trong mưa, tay giữ túi đồ nghề, mắt không nhìn vào ai. Loom-X vẫn chạy đều phía sau, rất ổn định, rất đẹp, rất lạnh.",
     npc: {
-      name: "Anh Hung",
+      name: "Anh Hùng",
       emoji: "🧑‍🔧",
-      role: "Tho cat bi cat vi tri",
+      role: "Thợ cắt bị cắt vị trí",
       dialogue:
-        "Toi lam o day 10 nam. Bay gio ho bao he thong moi khong con can nhieu nguoi nhu cu. Neu toi thanh nguoi du thua, vay 10 nam cua toi tinh la gi?",
+        "Tôi làm ở đây 10 năm. Bây giờ họ bảo hệ thống mới không còn cần nhiều người như cũ. Nếu tôi thành người dư thừa, vậy 10 năm của tôi tính là gì?",
     },
     choices: [
       {
-        text: "🎓 Ban noi ro voi Anh Hung: day chinh la doi quan du bi cong nghiep ma Mac mo ta, duoc tao ra de lam suc ep xuong tien cong va giu nguoi dang o lai trong noi so.",
+        text: "🎓 Bạn nói rõ với Anh Hùng: đây chính là đội quân dự bị công nghiệp mà Mác mô tả, được tạo ra để làm sức ép xuống tiền công và giữ người đang ở lại trong nỗi sợ.",
         feedback:
-          "Anh Hung lang im rat lau, roi lan dau tien hoi tiep thay vi buong xuoi. Khi bi kich duoc dat dung ten, no khong con giam gia tri con nguoi thanh loi tu trach nua.",
+          "Anh Hùng lặng im rất lâu, rồi lần đầu tiên hỏi tiếp thay vì buông xuôi. Khi bi kịch được đặt đúng tên, nó không còn giảm giá trị con người thành lỗi tự trách nữa.",
         effect: { knowledge: 25, social: 10, gem: "Đội Quân Dự Bị" },
         next: "crossroads",
-        conceptTag: "Goi ten co che",
+        conceptTag: "Gọi tên cơ chế",
         roleBonus: "student",
       },
       {
-        text: "👷 Ban khong de moi nguoi tan ra. Ban keu nhung nguoi bi cat vi tri o lai va ban y tuong lap xuong chung cua chinh ho.",
+        text: "👷 Bạn không để mọi người tan ra. Bạn kêu những người bị cắt vị trí ở lại và bàn ý tưởng lập xưởng chung của chính họ.",
         feedback:
-          "Y tuong nghe dien ro, nhung trong giay phut khung hoang no la thu dau tien khong den tu long thuong hai. Ban trao lai cho ho mot kha nang: khong chi di xin cho minh duoc dung lai, ma co the tu to chuc lai cong viec.",
+          "Ý tưởng nghe điên rồ, nhưng trong giây phút khủng hoảng nó là thứ đầu tiên không đến từ lòng thương hại. Bạn trao lại cho họ một khả năng: không chỉ đi xin cho mình được dùng lại, mà có thể tự tổ chức lại công việc.",
         effect: { willpower: 25, social: 25, gem: "Hợp Tác Xã Số" },
         next: "crossroads",
-        conceptTag: "Tu to chuc lai lao dong",
+        conceptTag: "Tự tổ chức lại lao động",
         requirement: { stat: "social", min: 40 },
         roleBonus: "worker",
       },
       {
-        text: "💻 Ban ngoi ngay xuong them cot, mo laptop va tao mot lo trinh hoc cap toc de bien nhom bi cat giam thanh nhom van hanh va bao tri moi.",
+        text: "💻 Bạn ngồi ngay xuống thềm cột, mở laptop và tạo một lộ trình học cấp tốc để biến nhóm bị cắt giảm thành nhóm vận hành và bảo trì mới.",
         feedback:
-          "Khong phai ai cung lap tuc tin, nhung ai cung dung lai nhin. Trong man mua, man hinh laptop cua ban la thu duy nhat phat ra anh sang khac voi bang thong bao cat giam: anh sang cua huong di.",
+          "Không phải ai cũng lập tức tin, nhưng ai cũng đứng lại nhìn. Trong màn mưa, màn hình laptop của bạn là thứ duy nhất phát ra ánh sáng khác với bảng thông báo cắt giảm: ánh sáng của hướng đi.",
         effect: { wealth: -10, social: 30, knowledge: 15 },
         next: "crossroads",
-        conceptTag: "Chuyen lao dong",
+        conceptTag: "Chuyển lao động",
         roleBonus: "technician",
       },
     ],
@@ -885,37 +885,37 @@ const SCENES: Record<SceneId, Scene> = {
 
   crossroads: {
     id: "crossroads",
-    title: "Dem Mat Dien",
+    title: "Đêm Mất Điện",
     bgAccent: "var(--secondary)",
-    setting: "Quan ca phe truoc cong khu cong nghiep · 23:40",
+    setting: "Quán cà phê trước cổng khu công nghiệp · 23:40",
     narrative:
-      "Dem do, ca khu mat dien trong 15 phut vi qua tai. Loom-X tat may, nha may toi den, va lan dau tien trong tuan ca he thong than thanh kia dung im hoan toan. Ban ngoi doi dien GS. Hung, nguoi vua tu Ha Noi vao de gap ban sau khi nghe ve cuoc bien dong o Sang Nam. Ong noi dem mat dien la luc de nhin thay mot dieu don gian: may moc khong tu viet ra tuong lai, con nguoi moi lam viec do.",
+      "Đêm đó, cả khu mất điện trong 15 phút vì quá tải. Loom-X tắt máy, nhà máy tối đen, và lần đầu tiên trong tuần cả hệ thống thần thánh kia đứng im hoàn toàn. Bạn ngồi đối diện GS. Hùng, người vừa từ Hà Nội vào để gặp bạn sau khi nghe về cuộc biến động ở Sáng Nam. Ông nói đêm mất điện là lúc để nhìn thấy một điều đơn giản: máy móc không tự viết ra tương lai, con người mới làm việc đó.",
     npc: {
-      name: "GS. Hung",
+      name: "GS. Hùng",
       emoji: "👨‍🏫",
-      role: "Giang vien kinh te chinh tri",
+      role: "Giảng viên kinh tế chính trị",
       dialogue:
-        "Em da thay tan mat tuong quan giua lao dong song, may moc va quyen luc. Bay gio em chon cach can thiep vao lich su nay: to chuc lai quan he san xuat, nang cap lao dong, hay dung mo hinh so huu moi de dao nghich cuoc choi?",
+        "Em đã thấy tận mắt tương quan giữa lao động sống, máy móc và quyền lực. Bây giờ em chọn cách can thiệp vào lịch sử này: tổ chức lại quan hệ sản xuất, nâng cấp lao động, hay dựng mô hình sở hữu mới để đảo nghịch cuộc chơi?",
     },
     choices: [
       {
-        text: "🤝 Ban quyet dinh di theo con duong to chuc va dam phan, bien noi so Loom-X thanh suc ep chinh tri cua nguoi lao dong.",
+        text: "🤝 Bạn quyết định đi theo con đường tổ chức và đàm phán, biến nỗi sợ Loom-X thành sức ép chính trị của người lao động.",
         feedback:
-          "GS. Hung gap so. Ong khong khen, chi noi: con duong nay can tri nho, ky luat va mot tap the khong tan ra khi bi de doa.",
+          "GS. Hùng gập sổ. Ông không khen, chỉ nói: con đường này cần trí nhớ, kỷ luật và một tập thể không tan ra khi bị đe dọa.",
         effect: { willpower: 10, social: 10 },
         next: "path_a1",
       },
       {
-        text: "💻 Ban quyet dinh lao vao hoc sau he thong, vi neu khong nam duoc cong nghe thi mai mai chi theo sau no.",
+        text: "💻 Bạn quyết định lao vào học sâu hệ thống, vì nếu không nắm được công nghệ thì mãi mãi chỉ theo sau nó.",
         feedback:
-          "GS. Hung nhac ban mot cau cua Mac ve lao dong phuc tap. Ban nhan ra hoc khong con la chuyen thoat than, ma la mot mat tran moi cua quyen luc lao dong.",
+          "GS. Hùng nhắc bạn một câu của Mác về lao động phức tạp. Bạn nhận ra học không còn là chuyện thoát thân, mà là một mặt trận mới của quyền lực lao động.",
         effect: { knowledge: 10, wealth: 10 },
         next: "path_b1",
       },
       {
-        text: "🌱 Ban quyet dinh thu mot thu nguy hiem hon: lap mo hinh cong nhan dong so huu may moc thay vi xin duoc doi xu nhe tay hon.",
+        text: "🌱 Bạn quyết định thử một thứ nguy hiểm hơn: lập mô hình công nhân đồng sở hữu máy móc thay vì xin được đối xử nhẹ tay hơn.",
         feedback:
-          "GS. Hung ngoi im rat lau roi moi cuoi. Ong bao day la lua chon kho nhat, vi no khong sua be mat cua he thong ma dung cham vao cau truc so huu.",
+          "GS. Hùng ngồi im rất lâu rồi mới cười. Ông bảo đây là lựa chọn khó nhất, vì nó không sửa bề mặt của hệ thống mà đụng chạm vào cấu trúc sở hữu.",
         effect: { knowledge: 5, social: 15, willpower: 5 },
         next: "path_c1",
       },
@@ -924,23 +924,23 @@ const SCENES: Record<SceneId, Scene> = {
 
   path_a1: {
     id: "path_a1",
-    title: "Mat Tran Thuong Luong",
+    title: "Mặt Trận Thương Lượng",
     bgAccent: "var(--primary)",
-    setting: "Van phong lien doan lao dong so · 2026",
+    setting: "Văn phòng liên đoàn lao động số · 2026",
     narrative:
-      "Ban tro thanh mot trong nhung nguoi lap ho so cho cac vu tai cau truc tu dong hoa. Ngay nao ban cung gap cong nhan mat viec, nhom ky su bi bo sung trach nhiem ma khong tang luong, va doanh nghiep noi ve nang suat nhu mot bo than chu khong phai lua chon. Ho so cua Sang Nam tro thanh vu dau tien duoc dua len cap quoc gia.",
+      "Bạn trở thành một trong những người lập hồ sơ cho các vụ tái cấu trúc tự động hóa. Ngày nào bạn cũng gặp công nhân mất việc, nhóm kỹ sư bị bổ sung trách nhiệm mà không tăng lương, và doanh nghiệp nói về năng suất như một bổn phận chứ không phải lựa chọn. Hồ sơ của Sáng Nam trở thành vụ đầu tiên được đưa lên cấp quốc gia.",
     npc: {
-      name: "Chi Mai",
+      name: "Chị Mai",
       emoji: "👩‍🦱",
-      role: "Dong nghiep to chuc",
+      role: "Đồng nghiệp tổ chức",
       dialogue:
-        'Neu chi xin "giu viec", minh se thua. Dieu khoan phai danh thang vao noi phat sinh loi ich tu Loom-X: doanh nghiep phai trich mot phan loi nhuan tang them cho quy chuyen doi lao dong.',
+        'Nếu chỉ xin "giữ việc", mình sẽ thua. Điều khoản phải đánh thẳng vào nơi phát sinh lợi ích từ Loom-X: doanh nghiệp phải trích một phần lợi nhuận tăng thêm cho quỹ chuyển đổi lao động.',
     },
     choices: [
       {
-        text: "Ban bo sung co che dao tao lai co luong 24 thang, bien quy chuyen doi thanh quyen chinh tri chu khong phai long thuong hai.",
+        text: "Bạn bổ sung cơ chế đào tạo lại có lương 24 tháng, biến quỹ chuyển đổi thành quyền chính trị chứ không phải lòng thương hại.",
         feedback:
-          "Ho so khong con la ban kien nghi xin xot, ma thanh mot thiet ke phan phoi lai thanh qua tu dong hoa. Day la lan dau nhiieu nguoi thay ly luan Chuong 6 co the di thang vao chinh sach.",
+          "Hồ sơ không còn là bản kiến nghị xin xót, mà thành một thiết kế phân phối lại thành quả tự động hóa. Đây là lần đầu nhiều người thấy lý luận Chương 6 có thể đi thẳng vào chính sách.",
         effect: {
           knowledge: 10,
           social: 20,
@@ -950,9 +950,9 @@ const SCENES: Record<SceneId, Scene> = {
         next: "path_a2",
       },
       {
-        text: "Ban chot vao dieu khoan doanh nghiep phai thong bao som va cong khai tac dong lao dong truoc moi dot tu dong hoa lon.",
+        text: "Bạn chốt vào điều khoản doanh nghiệp phải thông báo sớm và công khai tác động lao động trước mỗi đợt tự động hóa lớn.",
         feedback:
-          "Khong hoanh trang bang quy chuyen doi, nhung dieu khoan nay dot vo vu khi manh nhat cua doanh nghiep: su bat ngo. Nguoi lao dong co thoi gian de to chuc lai minh.",
+          "Không hoành tráng bằng quỹ chuyển đổi, nhưng điều khoản này đập vỡ vũ khí mạnh nhất của doanh nghiệp: sự bất ngờ. Người lao động có thời gian để tổ chức lại mình.",
         effect: { willpower: 15, social: 15 },
         next: "path_a2",
       },
@@ -961,23 +961,23 @@ const SCENES: Record<SceneId, Scene> = {
 
   path_a2: {
     id: "path_a2",
-    title: "Phien Dieu Tran Cong Khai",
+    title: "Phiên Điều Trần Công Khai",
     bgAccent: "var(--primary)",
-    setting: "Hoi truong dieu tran lao dong so · Ha Noi · 2030",
+    setting: "Hội trường điều trần lao động số · Hà Nội · 2030",
     narrative:
-      "Ho so Sang Nam tro thanh tam guong cho hang tram doanh nghiep dang tu dong hoa. Ban dung truoc hoi dong dieu tran, phia sau la cong nhan, phia doi dien la dai dien cac tap doan noi rang cong nghe se tu sua tat ca. Ba phut cuoi cung thuoc ve ban.",
+      "Hồ sơ Sáng Nam trở thành tấm gương cho hàng trăm doanh nghiệp đang tự động hóa. Bạn đứng trước hội đồng điều trần, phía sau là công nhân, phía đối diện là đại diện các tập đoàn nói rằng công nghệ sẽ tự sửa tất cả. Ba phút cuối cùng thuộc về bạn.",
     npc: {
-      name: "Chu toa",
+      name: "Chủ tọa",
       emoji: "🏛️",
-      role: "Chu tich phien dieu tran",
+      role: "Chủ tịch phiên điều trần",
       dialogue:
-        "Xin ket luan ro: trong ky nguyen AI, nha nuoc phai bao ve cai gi truoc tien - toc do dau tu hay quyen ton tai cua nguoi lao dong?",
+        "Xin kết luận rõ: trong kỷ nguyên AI, nhà nước phải bảo vệ cái gì trước tiên - tốc độ đầu tư hay quyền tồn tại của người lao động?",
     },
     choices: [
       {
-        text: "Ban khang dinh AI va robot la tu lieu san xuat moi, nen nguoi lao dong phai co quyen duoc thong tin, duoc dam phan va duoc huong mot phan thanh qua.",
+        text: "Bạn khẳng định AI và robot là tư liệu sản xuất mới, nên người lao động phải có quyền được thông tin, được đàm phán và được hưởng một phần thành quả.",
         feedback:
-          "Hoi truong dap lai bang tieng vo tay hiem hoi trong mot phien dieu tran day tinh toan ky thuat. Ban khong xin cho nguoi lao dong mot cho dung, ban buoc he thong phai thua nhan ho la chu the chinh tri cua qua trinh chuyen doi.",
+          "Hội trường đáp lại bằng tiếng vỗ tay hiếm hoi trong một phiên điều trần đầy tính toán kỹ thuật. Bạn không xin cho người lao động một chỗ đứng, bạn buộc hệ thống phải thừa nhận họ là chủ thể chính trị của quá trình chuyển đổi.",
         effect: {
           social: 30,
           knowledge: 10,
@@ -987,9 +987,9 @@ const SCENES: Record<SceneId, Scene> = {
         next: "ending_a",
       },
       {
-        text: "Ban ket lai bang mot cau don gian: khong ai duoc bi bien thanh phan hao mon cua tu dong hoa.",
+        text: "Bạn kết lại bằng một câu đơn giản: không ai được bị biến thành phần hao mòn của tự động hóa.",
         feedback:
-          "Cau noi ngan hon nhung danh thang vao dieu ca hoi truong dang ne tranh. Khi phien bo phieu ket thuc, mot khung phap ly moi mo ra cho hang trieu lao dong.",
+          "Câu nói ngắn hơn nhưng đánh thẳng vào điều cả hội trường đang né tránh. Khi phiên bỏ phiếu kết thúc, một khung pháp lý mới mở ra cho hàng triệu lao động.",
         effect: { social: 25, willpower: 20, gem: "Kiến Tạo Lịch Sử" },
         next: "ending_a",
       },
@@ -998,23 +998,23 @@ const SCENES: Record<SceneId, Scene> = {
 
   path_b1: {
     id: "path_b1",
-    title: "Phong Dieu Phoi Thuat Toan",
+    title: "Phòng Điều Phối Thuật Toán",
     bgAccent: "var(--accent)",
-    setting: "Chuong trinh tai dao tao ky su he thong · 2026",
+    setting: "Chương trình tái đào tạo kỹ sư hệ thống · 2026",
     narrative:
-      "Ban roi Sang Nam mot thoi gian de lao vao mot khoa hoc khac thuong: khong day ban cach code nhanh nhat, ma day cach doc he thong san xuat nhu doc mot cau truc quyen luc. Ban hoc machine learning, he thong toi uu, logistic va ca kinh te chinh tri. Moi lan mo hinh hoa mot day chuyen, ban lai nho toi khuon mat nguoi bi goi ten trong bang cat giam nam nao.",
+      "Bạn rời Sáng Nam một thời gian để lao vào một khóa học khác thường: không dạy bạn cách code nhanh nhất, mà dạy cách đọc hệ thống sản xuất như đọc một cấu trúc quyền lực. Bạn học machine learning, hệ thống tối ưu, logistics và cả kinh tế chính trị. Mỗi lần mô hình hóa một dây chuyền, bạn lại nhớ tới khuôn mặt người bị gọi tên trong bảng cắt giảm năm nào.",
     npc: {
-      name: "Thay Khoa",
+      name: "Thầy Khoa",
       emoji: "👨‍💻",
-      role: "Huong dan ky thuat",
+      role: "Hướng dẫn kỹ thuật",
       dialogue:
-        "Lao dong phuc tap tao ra gia tri cao hon khong co nghia no vo can. Van de la em dung tri tue ky thuat de phuc vu cau truc nao: cat giam con nguoi hay mo duong cho ho song duoc voi cong nghe?",
+        "Lao động phức tạp tạo ra giá trị cao hơn không có nghĩa nó vô can. Vấn đề là em dùng trí tuệ kỹ thuật để phục vụ cấu trúc nào: cắt giảm con người hay mở đường cho họ sống được với công nghệ?",
     },
     choices: [
       {
-        text: "Ban xay dung he thong AI phuc vu chuyen nghe cho cong nhan, uu tien ghep ky nang hien co voi lo trinh hoc ngan nhat de vao viec moi.",
+        text: "Bạn xây dựng hệ thống AI phục vụ chuyển nghề cho công nhân, ưu tiên ghép kỹ năng hiện có với lộ trình học ngắn nhất để vào việc mới.",
         feedback:
-          "De tai cua ban lam thay doi khong khi ca lop. Day khong con la bai tap toi uu hoa may, ma la bai toan lam sao de lao dong song khong bi vut ra ngoai moi lan cong nghe nhay vot.",
+          "Đề tài của bạn làm thay đổi không khí cả lớp. Đây không còn là bài tập tối ưu hóa máy, mà là bài toán làm sao để lao động sống không bị vứt ra ngoài mỗi lần công nghệ nhảy vọt.",
         effect: {
           knowledge: 20,
           social: 15,
@@ -1022,12 +1022,12 @@ const SCENES: Record<SceneId, Scene> = {
           gem: "Lao Động Phức Tạp",
         },
         next: "path_b2",
-        conceptTag: "AI chuyen nghe",
+        conceptTag: "AI chuyển nghề",
       },
       {
-        text: "Ban chon di sau vao AI toi uu san xuat, muon nam tan goc cong cu ma doanh nghiep dang dung de tai cau truc xuong may.",
+        text: "Bạn chọn đi sâu vào AI tối ưu sản xuất, muốn nắm tận gốc công cụ mà doanh nghiệp đang dùng để tái cấu trúc xưởng may.",
         feedback:
-          "Lua chon nay khong vo toi, nhung no bat ban nhin thang vao nghich ly: cang gioi toi uu, ban cang phai doi dien voi cau hoi minh dang toi uu cho ai.",
+          "Lựa chọn này không vô tội, nhưng nó bắt bạn nhìn thẳng vào nghịch lý: càng giỏi tối ưu, bạn càng phải đối diện với câu hỏi mình đang tối ưu cho ai.",
         effect: { wealth: 25, knowledge: 15 },
         next: "path_b2",
       },
@@ -1036,23 +1036,23 @@ const SCENES: Record<SceneId, Scene> = {
 
   path_b2: {
     id: "path_b2",
-    title: "Mang Chuyen Nghe VietTransition",
+    title: "Mạng Chuyển Nghề VietTransition",
     bgAccent: "var(--accent)",
-    setting: "Phong nghien cuu ung dung lao dong so · 2030",
+    setting: "Phòng nghiên cứu ứng dụng lao động số · 2030",
     narrative:
-      "Bon nam sau, ban la nguoi dung dau mot du an AI khong nham thay nguoi nhanh hon, ma giup nguoi lao dong tim duong qua song shock tu dong hoa. VietTransition khong tinh ai 'du thua'; he thong tinh nhung ky nang co the duoc chuyen hoa, nhung khu vuc dang khat nhan luc, va nhung lo trinh hoc ngắn nhat de di tiep.",
+      "Bốn năm sau, bạn là người đứng đầu một dự án AI không nhằm thay người nhanh hơn, mà giúp người lao động tìm đường qua sóng shock tự động hóa. VietTransition không tính ai 'dư thừa'; hệ thống tính những kỹ năng có thể được chuyển hóa, những khu vực đang khát nhân lực, và những lộ trình học ngắn nhất để đi tiếp.",
     npc: {
-      name: "GĐ du an",
+      name: "GĐ dự án",
       emoji: "🔬",
-      role: "Hoi dong trien khai",
+      role: "Hội đồng triển khai",
       dialogue:
-        "Day la thoi diem quyet dinh. Neu mo he thong ra, xa hoi cung huong loi nhung quy tac kinh doanh cua du an se thay doi. Neu dong no lai, em se co nguon luc de mo rong nhanh hon.",
+        "Đây là thời điểm quyết định. Nếu mở hệ thống ra, xã hội cùng hưởng lợi nhưng quy tắc kinh doanh của dự án sẽ thay đổi. Nếu đóng nó lại, em sẽ có nguồn lực để mở rộng nhanh hơn.",
     },
     choices: [
       {
-        text: "Ban mo ma nguon va cong bo bo tieu chuan danh gia de dia phuong, cong doan va truong nghe cung co the phat trien.",
+        text: "Bạn mở mã nguồn và công bố bộ tiêu chuẩn đánh giá để địa phương, công đoàn và trường nghề cùng có thể phát triển.",
         feedback:
-          "Quyet dinh nay lam du an khong con thuoc rieng mot to chuc. Anh huong cua no lan nhanh hon thu nhap ca nhan cua ban, va lan dau tien mot he thong AI lao dong duoc xem la ha tang chung.",
+          "Quyết định này làm dự án không còn thuộc riêng một tổ chức. Ảnh hưởng của nó lan nhanh hơn thu nhập cá nhân của bạn, và lần đầu tiên một hệ thống AI lao động được xem là hạ tầng chung.",
         effect: {
           social: 25,
           knowledge: 10,
@@ -1062,9 +1062,9 @@ const SCENES: Record<SceneId, Scene> = {
         next: "ending_b",
       },
       {
-        text: "Ban thuong mai hoa co kiem soat de mo rong nhanh, giu nhom trung tam du nguon luc cap nhat he thong lien tuc.",
+        text: "Bạn thương mại hóa có kiểm soát để mở rộng nhanh, giữ nhóm trung tâm đủ nguồn lực cập nhật hệ thống liên tục.",
         feedback:
-          "Ban chap nhan di tren mot day can bang mong manh giua tac dong xa hoi va suc ep thi truong. Duoi cach nao, du an van dat lai cau hoi ban dau cua Sang Nam cho ca nuoc.",
+          "Bạn chấp nhận đi trên một dây cân bằng mong manh giữa tác động xã hội và sức ép thị trường. Dưới cách nào, dự án vẫn đặt lại câu hỏi ban đầu của Sáng Nam cho cả nước.",
         effect: { wealth: 20, knowledge: 10, social: 10 },
         next: "ending_b",
       },
@@ -1073,23 +1073,23 @@ const SCENES: Record<SceneId, Scene> = {
 
   path_c1: {
     id: "path_c1",
-    title: "Xuong So Huu Chung",
+    title: "Xưởng Sở Hữu Chung",
     bgAccent: "var(--secondary)",
-    setting: "Nha kho cu tai Thu Dau Mot · 2026",
+    setting: "Nhà kho cũ tại Thủ Dầu Một · 2026",
     narrative:
-      "Ban quay lai nhung nguoi bi day ra khoi Sang Nam va de xuat mot van de ma luc dau nghe nhu truyen tuong tuong: neu tu dong hoa da den, tai sao cong nhan khong cung nhau so huu no? Sau ba thang gom von, vay quy ho tro va tan dung mot nha kho cu, nhom cua ban lap duoc xuong thu nghiem dau tien voi ba cum may ban tu dong va mot quy che tu quan.",
+      "Bạn quay lại những người bị đẩy ra khỏi Sáng Nam và đề xuất một vấn đề mà lúc đầu nghe như chuyện tưởng tượng: nếu tự động hóa đã đến, tại sao công nhân không cùng nhau sở hữu nó? Sau ba tháng gom vốn, vay quỹ hỗ trợ và tận dụng một nhà kho cũ, nhóm của bạn lập được xưởng thử nghiệm đầu tiên với ba cụm máy bán tự động và một quy chế tự quản.",
     npc: {
-      name: "Anh Binh",
+      name: "Anh Bình",
       emoji: "🤝",
-      role: "Thanh vien sang lap",
+      role: "Thành viên sáng lập",
       dialogue:
-        "Lan dau tien toi khong so robot nua. Toi so minh se tro ve cach cu, de nguoi khac so huu may, con minh chi duoc phep song neu hop voi toc do cua no.",
+        "Lần đầu tiên tôi không sợ robot nữa. Tôi sợ mình sẽ trở về cách cũ, để người khác sở hữu máy, còn mình chỉ được phép sống nếu hợp với tốc độ của nó.",
     },
     choices: [
       {
-        text: "Ban chot nguyen tac moi thanh vien mot phieu, loi nhuan chia truoc tien theo lao dong dong gop va quy du phong chung.",
+        text: "Bạn chốt nguyên tắc mỗi thành viên một phiếu, lợi nhuận chia trước tiên theo lao động đóng góp và quỹ dự phòng chung.",
         feedback:
-          "Xuong nho, may it, nhung khong khi khac han. Moi quyet dinh ve may moc gio deu quay lai cau hoi ai duoc huong thanh qua. Day la luc ly luan ve so huu tro thanh quy tac van hanh moi ngay.",
+          "Xưởng nhỏ, máy ít, nhưng không khí khác hẳn. Mọi quyết định về máy móc giờ đều quay lại câu hỏi ai được hưởng thành quả. Đây là lúc lý luận về sở hữu trở thành quy tắc vận hành mỗi ngày.",
         effect: {
           social: 20,
           knowledge: 15,
@@ -1097,12 +1097,12 @@ const SCENES: Record<SceneId, Scene> = {
           gem: "Dân Chủ Công Nghiệp",
         },
         next: "path_c2",
-        conceptTag: "Dong so huu may moc",
+        conceptTag: "Đồng sở hữu máy móc",
       },
       {
-        text: "Ban uu tien tai dau tu manh vao may va dao tao, muon chung minh mo hinh cong nhan so huu van co the lon nhanh.",
+        text: "Bạn ưu tiên tái đầu tư mạnh vào máy và đào tạo, muốn chứng minh mô hình công nhân sở hữu vẫn có thể lớn nhanh.",
         feedback:
-          "Ap luc lon hon, nhung no giup mo hinh cua ban thoat khoi than phan bieu tuong. Moi don hang moi la mot lan chung minh rang van de khong phai robot hay khong robot, ma la ai nam quyen doi voi robot.",
+          "Áp lực lớn hơn, nhưng nó giúp mô hình của bạn thoát khỏi thân phận biểu tượng. Mỗi đơn hàng mới là một lần chứng minh rằng vấn đề không phải robot hay không robot, mà là ai nắm quyền đối với robot.",
         effect: { wealth: 15, social: 15, knowledge: 10 },
         next: "path_c2",
       },
@@ -1111,23 +1111,23 @@ const SCENES: Record<SceneId, Scene> = {
 
   path_c2: {
     id: "path_c2",
-    title: "Lien Minh Day Chuyen",
+    title: "Liên Minh Dây Chuyền",
     bgAccent: "var(--secondary)",
-    setting: "Hoi nghi lien ket hop tac xa so · 2030",
+    setting: "Hội nghị liên kết hợp tác xã số · 2030",
     narrative:
-      "Bon nam sau, mo hinh cua ban khong con la mot xuong thu nghiem. Nhieu nhom lao dong bi cat giam tu cac khu cong nghiep khac da nhan ban no thanh mang luoi san xuat moi. Cac to hop tac xa chia se may, du lieu don hang, chuong trinh dao tao va ca quy phuc loi. Gio day, van de khong con la co ton tai duoc hay khong, ma la co giu duoc ban chat khi mo rong hay khong.",
+      "Bốn năm sau, mô hình của bạn không còn là một xưởng thử nghiệm. Nhiều nhóm lao động bị cắt giảm từ các khu công nghiệp khác đã nhân bản nó thành mạng lưới sản xuất mới. Các tổ hợp tác xã chia sẻ máy, dữ liệu đơn hàng, chương trình đào tạo và cả quỹ phúc lợi. Giờ đây, vấn đề không còn là có tồn tại được hay không, mà là có giữ được bản chất khi mở rộng hay không.",
     npc: {
-      name: "Dai dien quy dau tu phat trien",
+      name: "Đại diện quỹ đầu tư phát triển",
       emoji: "🌏",
-      role: "Nha dau tu quoc te",
+      role: "Nhà đầu tư quốc tế",
       dialogue:
-        "Neu chung toi bom von, quy mo cua mo hinh nay se tang vot. Nhung von lon luon di kem quyen anh huong. Cac anh chi san sang giu ranh gioi den dau?",
+        "Nếu chúng tôi bơm vốn, quy mô của mô hình này sẽ tăng vọt. Nhưng vốn lớn luôn đi kèm quyền ảnh hưởng. Các anh chị sẵn sàng giữ ranh giới đến đâu?",
     },
     choices: [
       {
-        text: "Ban nhan von chi neu dieu le bat buoc giu quyen phieu cua cong nhan va gioi han ty le can thiep cua nha dau tu.",
+        text: "Bạn nhận vốn chỉ nếu điều lệ bắt buộc giữ quyền phiếu của công nhân và giới hạn tỷ lệ can thiệp của nhà đầu tư.",
         feedback:
-          "Cuoc dam phan keo dai den nua dem. Khi thoa thuan duoc ky, mo hinh cua ban khong chi lon len ma con dat duoc mot tien le: von co the vao, nhung quyen lam chu cua lao dong khong duoc bi pha loang.",
+          "Cuộc đàm phán kéo dài đến nửa đêm. Khi thỏa thuận được ký, mô hình của bạn không chỉ lớn lên mà còn đặt được một tiền lệ: vốn có thể vào, nhưng quyền làm chủ của lao động không được bị pha loãng.",
         effect: {
           social: 25,
           wealth: 15,
@@ -1137,9 +1137,9 @@ const SCENES: Record<SceneId, Scene> = {
         next: "ending_c",
       },
       {
-        text: "Ban tu choi von lon, chon phat trien cham hon de giu mo hinh hoan toan doc lap va do cong nhan tu quyet.",
+        text: "Bạn từ chối vốn lớn, chọn phát triển chậm hơn để giữ mô hình hoàn toàn độc lập và do công nhân tự quyết.",
         feedback:
-          "Quyet dinh nay lam nhieu nguoi sot ruot, nhung no giu cho lien minh cua ban mot nhan cach ro rang. Toc do cham hon, nhung huong di khong bi doi chu.",
+          "Quyết định này làm nhiều người sốt ruột, nhưng nó giữ cho liên minh của bạn một nhân cách rõ ràng. Tốc độ chậm hơn, nhưng hướng đi không bị đổi chủ.",
         effect: { willpower: 20, social: 20, knowledge: 5 },
         next: "ending_c",
       },
@@ -1228,16 +1228,36 @@ const determineEnding = (char: Character): EndingId => {
   if (stats.social >= 70 && stats.willpower >= 60) return "ending_a";
   if (stats.knowledge >= 60 && stats.wealth >= 55) return "ending_b";
   if (stats.social >= 65 && stats.knowledge >= 50) return "ending_c";
+
+  // Fallback logic - check which stat is actually highest
   const maxStat = Math.max(
     stats.knowledge,
     stats.willpower,
     stats.wealth,
     stats.social,
   );
-  if (maxStat === stats.knowledge) return "ending_b";
-  if (maxStat === stats.willpower || maxStat === stats.social)
-    return "ending_a";
-  return "ending_c";
+
+  // Count how many stats have the max value
+  const maxStats = [];
+  if (stats.knowledge === maxStat) maxStats.push("knowledge");
+  if (stats.willpower === maxStat) maxStats.push("willpower");
+  if (stats.wealth === maxStat) maxStats.push("wealth");
+  if (stats.social === maxStat) maxStats.push("social");
+
+  // If there's a tie, prioritize based on character class or specific order
+  if (maxStats.length === 1) {
+    // Single highest stat
+    if (maxStats[0] === "knowledge") return "ending_b";
+    if (maxStats[0] === "willpower" || maxStats[0] === "social")
+      return "ending_a";
+    return "ending_c";
+  } else {
+    // Tie-breaking logic
+    if (maxStats.includes("willpower") || maxStats.includes("social"))
+      return "ending_a";
+    if (maxStats.includes("knowledge")) return "ending_b";
+    return "ending_c";
+  }
 };
 
 const checkAchievements = (char: Character, sceneId: SceneId): string[] => {
@@ -2950,7 +2970,8 @@ function SceneScreen({
       {/* Setting banner */}
       <div
         style={{
-          background: "linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.36))",
+          background:
+            "linear-gradient(90deg, rgba(255,255,255,0.72), rgba(255,255,255,0.36))",
           border: "1px solid rgba(88, 60, 43, 0.35)",
           padding: "12px 16px",
           marginBottom: 18,
@@ -3039,7 +3060,7 @@ function SceneScreen({
             position: "relative",
           }}
         >
-          Toan canh tinh huong
+          Toàn cảnh tình huống
         </div>
         <p
           style={{
@@ -3232,7 +3253,7 @@ function SceneScreen({
               letterSpacing: 1,
             }}
           >
-            ▶ Chon cach hanh dong trong bien co:
+            ▶ Chọn cách hành động trong biến cố:
           </p>
           <div
             style={{
@@ -3280,7 +3301,9 @@ function SceneScreen({
                       width: 120,
                       height: 120,
                       borderRadius: "50%",
-                      background: isLocked ? "rgba(120,120,120,0.10)" : `${accent}10`,
+                      background: isLocked
+                        ? "rgba(120,120,120,0.10)"
+                        : `${accent}10`,
                     }}
                   />
                   <div
@@ -3307,7 +3330,9 @@ function SceneScreen({
                         fontSize: 13,
                         fontWeight: "900",
                         borderRadius: "50%",
-                        background: isLocked ? "rgba(255,255,255,0.35)" : `${accent}12`,
+                        background: isLocked
+                          ? "rgba(255,255,255,0.35)"
+                          : `${accent}12`,
                       }}
                     >
                       {isLocked ? "🔒" : i + 1}
@@ -3323,7 +3348,9 @@ function SceneScreen({
                           marginBottom: 8,
                         }}
                       >
-                        {isLocked ? "Lua chon tam thoi khoa" : "Nuoc di cua ban"}
+                        {isLocked
+                          ? "Lua chon tam thoi khoa"
+                          : "Nuoc di cua bạn"}
                       </div>
                       <p
                         style={{
@@ -5581,7 +5608,7 @@ function AIToolsScreen({ onFinish }: { onFinish: () => void }) {
     {
       name: "Biên tập nội dung",
       role: "Ngôn ngữ và bố cục",
-      desc: "AI hỗ trợ soạn nháp lời dẫn, câu mô tả và các diễn giải ban đầu. Nhóm chỉnh sửa lại để đúng tinh thần học phần, gọn hơn và ít khoa trương hơn.",
+      desc: "AI hỗ trợ soạn nháp lời dẫn, câu mô tả và các diễn giải bạn đầu. Nhóm chỉnh sửa lại để đúng tinh thần học phần, gọn hơn và ít khoa trương hơn.",
       color: "#fca5a5",
       icon: "02",
     },
@@ -5610,8 +5637,8 @@ function AIToolsScreen({ onFinish }: { onFinish: () => void }) {
     },
     {
       id: "02",
-      title: "Dùng AI để sinh gợi ý ban đầu",
-      text: "Nhóm dùng AI cho phần brainstorming, dàn ý, diễn đạt ban đầu hoặc hỗ trợ kỹ thuật. Mọi đầu ra nhận được đều được xem là bản nháp, không dùng nguyên trạng.",
+      title: "Dùng AI để sinh gợi ý bạn đầu",
+      text: "Nhóm dùng AI cho phần brainstorming, dàn ý, diễn đạt bạn đầu hoặc hỗ trợ kỹ thuật. Mọi đầu ra nhận được đều được xem là bản nháp, không dùng nguyên trạng.",
       color: "#fca5a5",
     },
     {
@@ -6943,7 +6970,7 @@ function AIUsageScreen({
     },
     {
       id: "02",
-      title: "Dùng AI để sinh gợi ý ban đầu",
+      title: "Dùng AI để sinh gợi ý bạn đầu",
       text: "Nhóm dùng AI cho brainstorming, dàn ý, diễn đạt nháp. Mọi đầu ra được xem là bản nháp, không dùng nguyên trạng.",
       color: "#fca5a5",
     },
@@ -8131,19 +8158,19 @@ const RulesView = ({ onContinue }: { onContinue: () => void }) => {
   const rules = [
     {
       title: "Sức mạnh Tri thức",
-      desc: "Mọi quyết định đều dựa trên sự hiểu biết về Kinh tế chính trị. Sai lầm sẽ dẫn đến sự phá sản của lý luận.",
+      desc: "Mỗi lựa chọn cần kiến thức về kinh tế. Quyết định sai sẽ ảnh hưởng đến tương lai của bạn và cộng đồng.",
     },
     {
       title: "Đấu tranh giai cấp",
-      desc: "Trò chơi là sự mô phỏng cuộc đấu tranh giữa lao động sống và tư bản số.",
+      desc: "Bạn là người lao động đối mặt với các tập đoàn công nghệ. Hãy chọn cách để bảo vệ quyền lợi của mình.",
     },
     {
       title: "Lao động là nguồn gốc",
-      desc: "Chỉ có lao động mới tạo ra giá trị mới. Hãy quản lý thời gian và năng lượng của bạn.",
+      desc: "Chỉ có con người mới tạo ra giá trị thật. Quản lý tốt kiến thức, sức khỏe và các mối quan hệ của bạn.",
     },
     {
       title: "Kết thúc đa tuyến",
-      desc: "Tương lai của nhân loại nằm trong tay bạn: Giác ngộ hay tiếp tục bị nô dịch?",
+      desc: "Lựa chọn của bạn quyết định tương lai: Trở thành người dẫn dắt công nghệ hay bị công nghệ kiểm soát?",
     },
   ];
   return (

@@ -39,7 +39,7 @@
   --sidebar-accent-foreground: #2e2e2e;
   --sidebar-border: #5d4037;
   --sidebar-ring: #a51c30;
-  
+
   /* Premium Industrial Tokens */
   --glass-bg: rgba(244, 235, 222, 0.7);
   --iron-gradient: linear-gradient(135deg, #5d4037 0%, #2e2e2e 100%);
@@ -245,21 +245,52 @@
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
   }
 
+  /* Presentation / slide icons - simple, neutral style */
+  .presentation-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    color: inherit;
+    transition:
+      background 0.15s ease,
+      transform 0.12s ease;
+    flex-shrink: 0;
+  }
+  .presentation-icon svg {
+    width: 20px;
+    height: 20px;
+    display: block;
+  }
+  .presentation-icon:hover {
+    background: rgba(255, 255, 255, 0.06);
+    transform: translateY(-2px);
+  }
+
   .text-glow {
     text-shadow: var(--crimson-glow);
   }
 
   .industrial-grid {
-    background-image: 
+    background-image:
       linear-gradient(rgba(165, 28, 48, 0.05) 1px, transparent 1px),
       linear-gradient(90deg, rgba(165, 28, 48, 0.05) 1px, transparent 1px);
     background-size: 40px 40px;
   }
 
   @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0px); }
+    0% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+    100% {
+      transform: translateY(0px);
+    }
   }
 
   .animate-float {

@@ -1,0 +1,147 @@
+// Backup of corrupted ResultsScreen (captured before cleanup)
+// If you need to inspect the full corrupted content, this file contains it.
+
+// --- START OF CORRUPTED CONTENT ---
+// (Content captured from previous workspace state; contains duplicated blocks)
+import React, { useEffect, useState } from "react";
+import { GameScores } from "../../App";
+
+interface Props {
+  scores: GameScores;
+  onRestart: () => void;
+}
+
+const KEY_CONCEPTS = [
+  {
+    icon: "⚖️",
+    title: "Hai mặt của Lao Động",
+    content:
+      "Lao động cụ thể → Giá trị sử dụng\nLao động trừu tượng → Giá trị (trao đổi)",
+    color: "#00d4ff",
+  },
+  {
+    icon: "💎",
+    title: "Nguồn gốc Giá Trị",
+    content:
+      "Chỉ lao động trừu tượng của con người tạo ra giá trị. AI/robot chỉ chuyển giá trị.",
+    color: "#f59e0b",
+  },
+  {
+    icon: "🔩",
+    title: "Tư Bản Bất Biến vs Khả Biến",
+    content:
+      "Tư bản bất biến: máy móc, nguyên liệu\nTư bản khả biến: sức lao động người",
+    color: "#8b5cf6",
+  },
+  {
+    icon: "🎓",
+    title: "Lao Động Phức Tạp",
+    content:
+      "Lao động có kỹ năng cao tạo ra giá trị nhiều hơn lao động giản đơn.",
+    color: "#10b981",
+  },
+  {
+    icon: "🇻🇳",
+    title: "Định Hướng Việt Nam",
+    content:
+      "Phát triển nhân lực số, kỹ năng và sáng tạo để không bỏ ai phía sau.",
+    color: "#ff6b35",
+  },
+];
+
+function Firework({ x, y, color }: { x: number; y: number; color: string }) {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        left: `${x}%`,
+        top: `${y}%`,
+        width: 6,
+        height: 6,
+        borderRadius: "50%",
+        background: color,
+        boxShadow: `0 0 8px ${color}`,
+      }}
+    />
+  );
+}
+
+export default function ResultsScreen({ scores, onRestart }: Props) {
+  const [showConcepts, setShowConcepts] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setShowConcepts(true), 700);
+    return () => clearTimeout(t);
+  }, []);
+
+  const game1Pct = Math.round((scores.game1 / 8) * 100);
+  const game2Pct = Math.round((scores.game2 / 24) * 100);
+  const game3Pct = Math.round((scores.game3 / 6) * 100);
+  const game4Pct = Math.round((scores.game4 / 100) * 100);
+  const overallPct = Math.round(
+    (game1Pct + game2Pct + game3Pct + game4Pct) / 4,
+  );
+
+  const getGrade = (pct: number) => {
+    if (pct >= 90)
+      return {
+        label: "XUẤT SẮC",
+        color: "#fbbf24",
+        sub: "Bạn đã nắm vững nội dung.",
+      };
+    if (pct >= 75)
+      return {
+        label: "TỐT",
+        color: "#10b981",
+        sub: "Bạn hiểu khá tốt các khái niệm.",
+      };
+    if (pct >= 60)
+      return {
+        label: "KHÁ",
+        color: "#00d4ff",
+        sub: "Cần ôn lại một vài phần.",
+      };
+    return {
+      label: "CẦN CỐ GẮNG",
+      color: "#f59e0b",
+      sub: "Hãy đọc lại chương và thử lại.",
+    };
+  };
+
+  const grade = getGrade(overallPct);
+  const fireworks = Array.from({ length: 8 }).map((_, i) => ({
+    x: 8 + i * 11,
+    y: 10 + (i % 3) * 12,
+    color: ["#00d4ff", "#f59e0b", "#10b981", "#8b5cf6"][i % 4],
+  }));
+
+  return (
+    <div style={{ minHeight: "100vh", padding: 24, position: "relative" }}>
+      {overallPct >= 60 &&
+        fireworks.map((f, i) => (
+          <Firework key={i} x={f.x} y={f.y} color={f.color} />
+        ))}
+
+      <div style={{ maxWidth: 920, margin: "0 auto", zIndex: 2 }}>
+        <header style={{ textAlign: "center", marginBottom: 18 }}>
+          <div style={{ fontSize: 64, marginBottom: 6 }}>
+            {overallPct >= 75 ? "🏆" : "📊"}
+          </div>
+          <h1 style={{ margin: 0, color: grade.color }}>
+            KẾT QUẢ CHUNG — {overallPct}%
+          </h1>
+          <p style={{ marginTop: 8, color: "rgba(255,255,255,0.75)" }}>
+            {grade.label} — {grade.sub}
+          </p>
+        </header>
+
+        {/* ... more corrupted/duplicated blocks captured ... */}
+        <div style={{ padding: 12 }}>
+          <p> (corrupted content trimmed in backup) </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- END OF CORRUPTED CONTENT ---

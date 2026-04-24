@@ -1,23 +1,34 @@
-@import url('https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&family=Crimson+Pro:ital,wght@0,200..900;1,200..900&display=swap');
-
-@theme {
-  --font-serif: "Crimson Pro", serif;
-  --font-slab: "Arvo", serif;
-}
+/* Use fonts that support Vietnamese well */
+/* Ensure Vietnamese subsets are loaded so accented glyphs display correctly */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Noto+Sans:wght@300;400;600;700&family=Noto+Serif:wght@400;600;700&family=Merriweather:wght@300;400;700;900&family=Roboto+Slab:wght@300;400;600;700;900&display=swap&subset=vietnamese");
 
 :root {
-  --font-serif: "Crimson Pro", serif;
-  --font-slab: "Arvo", serif;
+  --font-sans:
+    "Noto Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial;
+  --font-heading:
+    "Inter", "Noto Sans", system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial;
+  --font-serif: "Noto Serif", "Merriweather", Georgia, serif;
+  --font-slab: "Roboto Slab", "Noto Serif", Georgia, serif;
 }
 
 @layer base {
-  html, body {
-    font-family: var(--font-serif);
+  html,
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  
-  h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-slab);
-    letter-spacing: -0.01em;
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-heading);
     font-weight: 700;
+    letter-spacing: -0.01em;
   }
 }

@@ -156,8 +156,8 @@ export default function FloatingNavbar({
                 color: "rgba(255,255,255,0.2)",
                 fontWeight: "800",
                 textTransform: "uppercase",
-                writingMode: "vertical-lr",
-                transform: "rotate(180deg)",
+                letterSpacing: "1px",
+                whiteSpace: "nowrap",
               }}
             >
               {group.label}
